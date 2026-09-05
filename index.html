@@ -12,7 +12,7 @@
         .rule-card { background: #e8f4fd; border-left: 4px solid #3498db; padding: 12px; font-size: 13px; margin-bottom: 20px; border-radius: 4px; line-height: 1.5; }
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 14px; }
-        input { width: 100%; padding: 10px 12px; border: 1px solid #ccd1d9; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        input, select { width: 100%; padding: 10px 12px; border: 1px solid #ccd1d9; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
         .readonly-input { background: #e9ecef; font-weight: bold; color: #495057; }
         button { background: var(--success); color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
         button:hover { background: #219653; }
@@ -34,14 +34,25 @@
     
     <div class="rule-card">
         <strong>Aturan Ketat Gudang:</strong><br>
-        1. Teknisi bebas membawa pipa lebih (cadangan) untuk jaga-jaga.<br>
-        2. Sisa pipa yang <b>dibawa pulang kembali ke gudang</b> TIDAK BOLEH 1 atau 2 meter (harus 0 meter atau minimal 3 meter ke atas!).
+        1. Pilih merk pipa dan catat ukuran yang dibawa serta terpakai.<br>
+        2. Sisa pipa yang <b>dibawa pulang kembali ke gudang</b> TIDAK BOLEH 1 atau 2 meter!
     </div>
 
     <form id="pipeForm">
         <div class="form-group">
             <label>Nama Teknisi</label>
             <input type="text" id="teknisi" required placeholder="Contoh: Budi">
+        </div>
+        <div class="form-group">
+            <label>Merk Pipa</label>
+            <select id="merkPipa" required>
+                <option value="" disabled selected>-- Pilih Merk Pipa --</option>
+                <option value="Tateho">Tateho</option>
+                <option value="Hoda">Hoda</option>
+                <option value="Inada">Inada</option>
+                <option value="Denpoo">Denpoo</option>
+                <option value="Merk Lainnya">Merk Lainnya</option>
+            </select>
         </div>
         <div class="form-group">
             <label>Nama Customer / Lokasi</label>
@@ -70,7 +81,7 @@
     <div class="modal-content">
         <div class="modal-title">⛔ PELANGGARAN SISA 1-2 METER!</div>
         <div class="modal-body" id="modalText">
-            Isi pesan peringatan...
+            Pesan peringatan...
         </div>
         <button class="modal-btn" onclick="closeModal()">Ubah Perhitungan</button>
     </div>
@@ -131,6 +142,7 @@
 
         let payload = {
             teknisi: document.getElementById('teknisi').value,
+            merkPipa: document.getElementById('merkPipa').value,
             customer: document.getElementById('customer').value,
             bawa: bawa,
             pakai: pakai
@@ -139,7 +151,6 @@
         btnSubmit.disabled = true;
         loadingText.style.display = "block";
 
-        // Mengirim data menggunakan fetch ke Google Sheets
         fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
@@ -147,7 +158,7 @@
             body: JSON.stringify(payload)
         })
         .then(() => {
-            alert("Laporan berhasil dikirim! Detail nama teknisi, pipa dibawa, dan sisa pulang sudah tercatat di Google Sheets.");
+            alert("Laporan berhasil dikirim! Merk pipa, teknisi, dan rincian sisa sudah tercatat di Google Sheets.");
             document.getElementById('pipeForm').reset();
             sisaPulang.value = "";
         })
