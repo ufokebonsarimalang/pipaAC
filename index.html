@@ -4,39 +4,231 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kontrol Stok & Laporan Pipa AC</title>
+    <!-- Import Google Font: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        :root { --primary: #2c3e50; --success: #27ae60; --danger: #c0392b; --bg: #f4f6f9; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 15px; color: #333; }
-        .container { max-width: 500px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin: auto; }
-        h2 { color: var(--primary); text-align: center; margin-top: 0; font-size: 20px; }
-        .rule-card { background: #e8f4fd; border-left: 4px solid #3498db; padding: 12px; font-size: 13px; margin-bottom: 20px; border-radius: 4px; line-height: 1.5; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 14px; }
-        input { width: 100%; padding: 10px 12px; border: 1px solid #ccd1d9; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
-        .readonly-input { background: #e9ecef; font-weight: bold; color: #495057; }
-        button { background: var(--success); color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
-        button:hover { background: #219653; }
-        button:disabled { background: #95a5a6; cursor: not-allowed; }
+        :root {
+            --primary: #0f172a;
+            --primary-light: #3b82f6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            --text: #334155;
+            --text-light: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: all 0.2s ease-in-out;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border);
+        }
+
+        h2 {
+            color: var(--primary);
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .rule-card {
+            background: #eff6ff;
+            border-left: 4px solid var(--primary-light);
+            padding: 14px 16px;
+            font-size: 13px;
+            margin-bottom: 24px;
+            border-radius: 8px;
+            line-height: 1.5;
+            color: #1e3a8a;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--primary);
+        }
+
+        input {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            color: var(--text);
+            background: #fff;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .readonly-input {
+            background: #f1f5f9;
+            font-weight: 600;
+            color: #475569;
+            cursor: not-allowed;
+        }
+
+        button {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 13px;
+            width: 100%;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+        }
+
+        button:hover {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #cbd5e1;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
         
-        /* Modal Peringatan */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
-        .modal-content { background: white; padding: 25px; border-radius: 8px; max-width: 350px; width: 90%; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        .modal-title { color: var(--danger); font-size: 17px; font-weight: bold; margin-bottom: 10px; }
-        .modal-body { font-size: 13px; margin-bottom: 20px; line-height: 1.5; color: #555; text-align: left; }
-        .modal-btn { background: var(--danger); color: white; border: none; padding: 8px 16px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; }
-        .loading { text-align: center; font-size: 13px; color: #e67e22; margin-top: 8px; display: none; }
+        /* Modal Peringatan Smooth */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 25px 30px;
+            border-radius: 16px;
+            max-width: 380px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+
+        .modal.show .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-title {
+            color: var(--danger);
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            letter-spacing: -0.3px;
+        }
+
+        .modal-body {
+            font-size: 13px;
+            margin-bottom: 24px;
+            line-height: 1.6;
+            color: var(--text-light);
+            text-align: left;
+        }
+
+        .modal-btn {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2);
+        }
+
+        .modal-btn:hover {
+            background: #dc2626;
+        }
+
+        .loading {
+            text-align: center;
+            font-size: 13px;
+            color: #d97706;
+            margin-top: 12px;
+            font-weight: 500;
+            display: none;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Laporan Stok & Pipa Teknisi</h2>
+    <h2>Kontrol Pipa AC</h2>
     
     <div class="rule-card">
         <strong>Aturan Gudang:</strong><br>
-        1. Masukkan merk dan ukuran pipa (misal 1/4 - 3/8).<br>
-        2. Masukkan stok awal, pipa yang dibawa, dan terpakai.<br>
-        3. Sisa yang dibawa pulang <b>TIDAK BOLEH 1 atau 2 meter</b>!
+        • Masukkan stok awal, merk, & ukuran pipa.<br>
+        • Masukkan panjang pipa bawa & terpakai.<br>
+        • Sisa yang dibawa pulang <b>TIDAK BOLEH 1 atau 2 meter</b>!
     </div>
 
     <form id="pipeForm">
@@ -46,15 +238,15 @@
         </div>
         <div class="form-group">
             <label>Merk Pipa</label>
-            <input type="text" id="merkPipa" required placeholder="Contoh: Merk X">
+            <input type="text" id="merkPipa" required placeholder="Contoh: Tateho / Hoda">
         </div>
         <div class="form-group">
             <label>Ukuran Pipa</label>
-            <input type="text" id="ukuranPipa" required placeholder="Contoh: 1/4 - 3/8 atau 1/4 - 1/2">
+            <input type="text" id="ukuranPipa" required placeholder="Contoh: 1/4 - 3/8">
         </div>
         <div class="form-group">
             <label>Stok Awal Pipa di Gudang (Meter)</label>
-            <input type="number" id="stokAwal" required placeholder="Contoh: 30 (1 dos) atau 10 (sisa)" min="1">
+            <input type="number" id="stokAwal" required placeholder="Contoh: 30 atau 10" min="1">
         </div>
         <div class="form-group">
             <label>Nama Customer / Lokasi</label>
@@ -62,27 +254,27 @@
         </div>
         <div class="form-group">
             <label>Pipa yang DIBAWA untuk Job Ini (Meter)</label>
-            <input type="number" id="pipaBawa" required placeholder="Contoh: Bawa 10 meter" min="1">
+            <input type="number" id="pipaBawa" required placeholder="Contoh: 10" min="1">
         </div>
         <div class="form-group">
-            <label>Pipa yang TERPAKAI Aktual di Lokasi (Meter)</label>
-            <input type="number" id="pipaPakai" required placeholder="Contoh: Terpakai 8 meter" min="1">
+            <label>Pipa yang TERPAKAI Aktual (Meter)</label>
+            <input type="number" id="pipaPakai" required placeholder="Contoh: 8" min="1">
         </div>
         <div class="form-group">
             <label>Sisa Pipa yang DIBAWA PULANG (Otomatis)</label>
-            <input type="text" id="sisaPulang" class="readonly-input" readonly placeholder="Akan terhitung otomatis">
+            <input type="text" id="sisaPulang" class="readonly-input" readonly placeholder="Terhitung otomatis">
         </div>
         
-        <button type="submit" id="btnSubmit">Kirim Laporan ke Google Sheets</button>
-        <div id="loadingText" class="loading">Sedang mengirim data...</div>
+        <button type="submit" id="btnSubmit">Kirim Laporan</button>
+        <div id="loadingText" class="loading">Mengirim data ke Google Sheets...</div>
     </form>
 </div>
 
-<!-- Modal Peringatan -->
+<!-- Modal Peringatan Smooth -->
 <div id="alertModal" class="modal">
     <div class="modal-content">
-        <div class="modal-title" id="modalTitle">⛔ PERINGATAN SISTEM</div>
-        <div class="modal-body" id="modalText">Isi pesan...</div>
+        <div class="modal-title" id="modalTitle">⛔ PELANGGARAN SISA 1-2 METER</div>
+        <div class="modal-body" id="modalText">Pesan peringatan...</div>
         <button class="modal-btn" onclick="closeModal()">Perbaiki Input</button>
     </div>
 </div>
@@ -129,9 +321,9 @@
         let sisa = bawa - pakai;
 
         if (bawa > awal) {
-            modalTitle.innerText = "⛔ STOK TIDAK CUKUP!";
+            modalTitle.innerText = "⛔ STOK TIDAK CUKUP";
             modalText.innerHTML = `Pipa yang Anda bawa (<b>${bawa}m</b>) melebihi stok awal pipa di gudang (<b>${awal}m</b>). Periksa kembali input Anda!`;
-            alertModal.style.display = "flex";
+            openModal();
             return;
         }
 
@@ -142,12 +334,12 @@
 
         // VALIDASI UTAMA: Cek sisa 1 atau 2 meter
         if (sisa > 0 && sisa < 3) {
-            modalTitle.innerText = "⛔ PELANGGARAN SISA 1-2 METER!";
+            modalTitle.innerText = "⛔ PELANGGARAN SISA 1-2 METER";
             modalText.innerHTML = `Anda membawa <b>${bawa}m</b> dan terpakai <b>${pakai}m</b>.<br><br>` +
                                   `Sisa yang dibawa pulang adalah <b>${sisa} meter</b>.<br><br>` +
-                                  `<span style="color:red; font-weight:bold;">Sisa 1-2 meter dilarang karena menjadi barang mati!</span><br><br>` +
+                                  `<span style="color:var(--danger); font-weight:600;">Sisa 1-2 meter dilarang keras karena menjadi barang mati!</span><br><br>` +
                                   `<b>Solusi:</b> Sesuaikan pemakaian agar sisa pulang menjadi 0 meter atau minimal 3 meter ke atas.`;
-            alertModal.style.display = "flex";
+            openModal();
             return;
         }
 
@@ -171,7 +363,7 @@
             body: JSON.stringify(payload)
         })
         .then(() => {
-            alert("Laporan berhasil dikirim! Merk, ukuran, dan rincian sisa tercatat di Google Sheets.");
+            alert("Laporan berhasil dikirim ke Google Sheets!");
             document.getElementById('pipeForm').reset();
             sisaPulang.value = "";
         })
@@ -184,8 +376,12 @@
         });
     });
 
+    function openModal() {
+        alertModal.classList.add('show');
+    }
+
     function closeModal() {
-        alertModal.style.display = "none";
+        alertModal.classList.remove('show');
     }
 </script>
 
