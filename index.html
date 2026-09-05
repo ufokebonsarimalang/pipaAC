@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laporan Pipa & Sisa Pulang Teknisi</title>
+    <title>Kontrol Stok & Laporan Pipa AC</title>
     <style>
         :root { --primary: #2c3e50; --success: #27ae60; --danger: #c0392b; --bg: #f4f6f9; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 15px; color: #333; }
@@ -12,7 +12,7 @@
         .rule-card { background: #e8f4fd; border-left: 4px solid #3498db; padding: 12px; font-size: 13px; margin-bottom: 20px; border-radius: 4px; line-height: 1.5; }
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 14px; }
-        input, select { width: 100%; padding: 10px 12px; border: 1px solid #ccd1d9; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        input { width: 100%; padding: 10px 12px; border: 1px solid #ccd1d9; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
         .readonly-input { background: #e9ecef; font-weight: bold; color: #495057; }
         button { background: var(--success); color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
         button:hover { background: #219653; }
@@ -30,12 +30,13 @@
 <body>
 
 <div class="container">
-    <h2>Laporan Pipa & Sisa Pulang</h2>
+    <h2>Laporan Stok & Pipa Teknisi</h2>
     
     <div class="rule-card">
-        <strong>Aturan Ketat Gudang:</strong><br>
-        1. Pilih merk pipa dan catat ukuran yang dibawa serta terpakai.<br>
-        2. Sisa pipa yang <b>dibawa pulang kembali ke gudang</b> TIDAK BOLEH 1 atau 2 meter!
+        <strong>Aturan Gudang:</strong><br>
+        1. Masukkan stok awal pipa di gudang (misal 1 dos = 30m, atau sisa 10m).<br>
+        2. Masukkan merk, ukuran bawa, dan terpakai.<br>
+        3. Sisa yang dibawa pulang <b>TIDAK BOLEH 1 atau 2 meter</b>!
     </div>
 
     <form id="pipeForm">
@@ -45,25 +46,22 @@
         </div>
         <div class="form-group">
             <label>Merk Pipa</label>
-            <select id="merkPipa" required>
-                <option value="" disabled selected>-- Pilih Merk Pipa --</option>
-                <option value="Tateho">Tateho</option>
-                <option value="Hoda">Hoda</option>
-                <option value="Inada">Inada</option>
-                <option value="Denpoo">Denpoo</option>
-                <option value="Merk Lainnya">Merk Lainnya</option>
-            </select>
+            <input type="text" id="merkPipa" required placeholder="Contoh: Merk X / Merk Y">
+        </div>
+        <div class="form-group">
+            <label>Stok Awal Pipa di Gudang (Meter)</label>
+            <input type="number" id="stokAwal" required placeholder="Contoh: 30 (1 dos utuh) atau 10 (sisa)" min="1">
         </div>
         <div class="form-group">
             <label>Nama Customer / Lokasi</label>
             <input type="text" id="customer" required placeholder="Contoh: Pak Joko">
         </div>
         <div class="form-group">
-            <label>Pipa yang DIBAWA (Termasuk Cadangan)</label>
+            <label>Pipa yang DIBAWA untuk Job Ini (Meter)</label>
             <input type="number" id="pipaBawa" required placeholder="Contoh: Bawa 10 meter" min="1">
         </div>
         <div class="form-group">
-            <label>Pipa yang TERPAKAI Aktual di Lokasi</label>
+            <label>Pipa yang TERPAKAI Aktual di Lokasi (Meter)</label>
             <input type="number" id="pipaPakai" required placeholder="Contoh: Terpakai 8 meter" min="1">
         </div>
         <div class="form-group">
@@ -76,25 +74,25 @@
     </form>
 </div>
 
-<!-- Modal Peringatan Sisa 1-2 Meter -->
+<!-- Modal Peringatan -->
 <div id="alertModal" class="modal">
     <div class="modal-content">
-        <div class="modal-title">⛔ PELANGGARAN SISA 1-2 METER!</div>
-        <div class="modal-body" id="modalText">
-            Pesan peringatan...
-        </div>
-        <button class="modal-btn" onclick="closeModal()">Ubah Perhitungan</button>
+        <div class="modal-title" id="modalTitle">⛔ PERINGATAN SISTEM</div>
+        <div class="modal-body" id="modalText">Isi pesan...</div>
+        <button class="modal-btn" onclick="closeModal()">Perbaiki Input</button>
     </div>
 </div>
 
 <script>
-    // MASUKKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI:
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4xHubo3GdyGj4joHV4_pMw55uFFJXuh_j2R7j_jD2puCEN-CDGw3YGmgLNY2xk9Ma6g/exec";
+    // GANTI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA:
+    const SCRIPT_URL = "GANTI_DENGAN_URL_WEB_APP_ANDA_DISINI";
 
+    const stokAwal = document.getElementById('stokAwal');
     const pipaBawa = document.getElementById('pipaBawa');
     const pipaPakai = document.getElementById('pipaPakai');
     const sisaPulang = document.getElementById('sisaPulang');
     const alertModal = document.getElementById('alertModal');
+    const modalTitle = document.getElementById('modalTitle');
     const modalText = document.getElementById('modalText');
     const btnSubmit = document.getElementById('btnSubmit');
     const loadingText = document.getElementById('loadingText');
@@ -121,21 +119,30 @@
     document.getElementById('pipeForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
+        let awal = parseFloat(stokAwal.value);
         let bawa = parseFloat(pipaBawa.value);
         let pakai = parseFloat(pipaPakai.value);
         let sisa = bawa - pakai;
+
+        if (bawa > awal) {
+            modalTitle.innerText = "⛔ STOK TIDAK CUKUP!";
+            modalText.innerHTML = `Pipa yang Anda bawa (<b>${bawa}m</b>) melebihi stok awal pipa di gudang (<b>${awal}m</b>). Periksa kembali input Anda!`;
+            alertModal.style.display = "flex";
+            return;
+        }
 
         if (sisa < 0) {
             alert("Jumlah pipa terpakai tidak boleh lebih besar dari pipa yang dibawa!");
             return;
         }
 
-        // VALIDASI UTAMA: Cek apakah sisa pulang 1 atau 2 meter
+        // VALIDASI UTAMA: Cek sisa 1 atau 2 meter
         if (sisa > 0 && sisa < 3) {
-            modalText.innerHTML = `Anda membawa <b>${bawa} meter</b> dan terpakai <b>${pakai} meter</b>.<br><br>` +
+            modalTitle.innerText = "⛔ PELANGGARAN SISA 1-2 METER!";
+            modalText.innerHTML = `Anda membawa <b>${bawa}m</b> dan terpakai <b>${pakai}m</b>.<br><br>` +
                                   `Sisa yang dibawa pulang adalah <b>${sisa} meter</b>.<br><br>` +
                                   `<span style="color:red; font-weight:bold;">Sisa 1-2 meter dilarang karena menjadi barang mati!</span><br><br>` +
-                                  `<b>Solusi:</b> Sesuaikan pemakaian atau potong pas agar sisa pulang menjadi 0 meter atau minimal 3 meter.`;
+                                  `<b>Solusi:</b> Sesuaikan pemakaian agar sisa pulang menjadi 0 meter atau minimal 3 meter ke atas.`;
             alertModal.style.display = "flex";
             return;
         }
@@ -143,6 +150,7 @@
         let payload = {
             teknisi: document.getElementById('teknisi').value,
             merkPipa: document.getElementById('merkPipa').value,
+            stokAwal: awal,
             customer: document.getElementById('customer').value,
             bawa: bawa,
             pakai: pakai
@@ -158,7 +166,7 @@
             body: JSON.stringify(payload)
         })
         .then(() => {
-            alert("Laporan berhasil dikirim! Merk pipa, teknisi, dan rincian sisa sudah tercatat di Google Sheets.");
+            alert("Laporan berhasil dikirim! Stok awal, merk, dan rincian sisa tercatat di Google Sheets.");
             document.getElementById('pipeForm').reset();
             sisaPulang.value = "";
         })
