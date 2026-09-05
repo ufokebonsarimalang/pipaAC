@@ -34,8 +34,8 @@
     
     <div class="rule-card">
         <strong>Aturan Gudang:</strong><br>
-        1. Masukkan stok awal pipa di gudang (misal 1 dos = 30m, atau sisa 10m).<br>
-        2. Masukkan merk, ukuran bawa, dan terpakai.<br>
+        1. Masukkan merk dan ukuran pipa (misal 1/4 - 3/8).<br>
+        2. Masukkan stok awal, pipa yang dibawa, dan terpakai.<br>
         3. Sisa yang dibawa pulang <b>TIDAK BOLEH 1 atau 2 meter</b>!
     </div>
 
@@ -46,11 +46,15 @@
         </div>
         <div class="form-group">
             <label>Merk Pipa</label>
-            <input type="text" id="merkPipa" required placeholder="Contoh: Merk X / Merk Y">
+            <input type="text" id="merkPipa" required placeholder="Contoh: Merk X">
+        </div>
+        <div class="form-group">
+            <label>Ukuran Pipa</label>
+            <input type="text" id="ukuranPipa" required placeholder="Contoh: 1/4 - 3/8 atau 1/4 - 1/2">
         </div>
         <div class="form-group">
             <label>Stok Awal Pipa di Gudang (Meter)</label>
-            <input type="number" id="stokAwal" required placeholder="Contoh: 30 (1 dos utuh) atau 10 (sisa)" min="1">
+            <input type="number" id="stokAwal" required placeholder="Contoh: 30 (1 dos) atau 10 (sisa)" min="1">
         </div>
         <div class="form-group">
             <label>Nama Customer / Lokasi</label>
@@ -150,6 +154,7 @@
         let payload = {
             teknisi: document.getElementById('teknisi').value,
             merkPipa: document.getElementById('merkPipa').value,
+            ukuranPipa: document.getElementById('ukuranPipa').value,
             stokAwal: awal,
             customer: document.getElementById('customer').value,
             bawa: bawa,
@@ -166,7 +171,7 @@
             body: JSON.stringify(payload)
         })
         .then(() => {
-            alert("Laporan berhasil dikirim! Stok awal, merk, dan rincian sisa tercatat di Google Sheets.");
+            alert("Laporan berhasil dikirim! Merk, ukuran, dan rincian sisa tercatat di Google Sheets.");
             document.getElementById('pipeForm').reset();
             sisaPulang.value = "";
         })
