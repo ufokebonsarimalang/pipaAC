@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kontrol Stok & Laporan Pipa AC</title>
+    <title>Kontrol Pipa AC (Sheets + Admin Web)</title>
     <!-- Import Google Font: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,10 +22,7 @@
             --text-light: #64748b;
         }
 
-        * {
-            box-sizing: border-box;
-            transition: all 0.2s ease-in-out;
-        }
+        * { box-sizing: border-box; transition: all 0.2s ease-in-out; }
 
         body {
             font-family: 'Inter', sans-serif;
@@ -35,17 +32,17 @@
             padding: 20px 15px;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             min-height: 100vh;
         }
 
         .container {
             width: 100%;
-            max-width: 480px;
+            max-width: 800px;
             background: var(--card-bg);
-            padding: 30px;
+            padding: 25px 30px;
             border-radius: 16px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
             border: 1px solid var(--border);
         }
 
@@ -56,8 +53,38 @@
             margin-bottom: 20px;
             font-size: 22px;
             font-weight: 700;
-            letter-spacing: -0.5px;
         }
+
+        /* Navigasi Tab / Halaman */
+        .nav-tabs {
+            display: flex;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-light);
+            border-radius: 8px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+        }
+
+        .nav-tab.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .page-section { display: none; }
+        .page-section.active { display: block; }
 
         .rule-card {
             background: #eff6ff;
@@ -70,9 +97,7 @@
             color: #1e3a8a;
         }
 
-        .form-group {
-            margin-bottom: 18px;
-        }
+        .form-group { margin-bottom: 18px; }
 
         label {
             display: block;
@@ -106,7 +131,7 @@
             cursor: not-allowed;
         }
 
-        button {
+        button.btn-action {
             background: var(--success);
             color: white;
             border: none;
@@ -118,159 +143,158 @@
             font-weight: 600;
             cursor: pointer;
             margin-top: 10px;
-            box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
         }
 
-        button:hover {
-            background: #059669;
-            transform: translateY(-1px);
+        button.btn-action:hover { background: #059669; }
+
+        /* Tabel Rekap Admin */
+        .table-responsive {
+            overflow-x: auto;
+            margin-top: 15px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
         }
 
-        button:active {
-            transform: translateY(0);
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            text-align: left;
+            white-space: nowrap;
         }
 
-        button:disabled {
-            background: #cbd5e1;
-            box-shadow: none;
-            cursor: not-allowed;
-            transform: none;
+        th, td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
         }
-        
-        /* Modal Peringatan Smooth */
+
+        th {
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) { background: #f8fafc; }
+        tr:hover { background: #f1f5f9; }
+
+        .badge-ok { color: var(--success); font-weight: 600; }
+        .loading-text { text-align: center; padding: 20px; color: var(--text-light); font-size: 13px; }
+
+        /* Modal Peringatan */
         .modal {
             display: none;
             position: fixed;
             z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
+            left: 0; top: 0; width: 100%; height: 100%;
             background: rgba(15, 23, 42, 0.6);
             backdrop-filter: blur(4px);
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.3s ease;
         }
-
-        .modal.show {
-            display: flex;
-            opacity: 1;
-        }
-
+        .modal.show { display: flex; opacity: 1; }
         .modal-content {
-            background: white;
-            padding: 25px 30px;
-            border-radius: 16px;
-            max-width: 380px;
-            width: 90%;
-            text-align: center;
+            background: white; padding: 25px 30px; border-radius: 16px;
+            max-width: 380px; width: 90%; text-align: center;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-            transform: scale(0.95);
-            transition: transform 0.3s ease;
         }
-
-        .modal.show .modal-content {
-            transform: scale(1);
-        }
-
-        .modal-title {
-            color: var(--danger);
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 10px;
-            letter-spacing: -0.3px;
-        }
-
-        .modal-body {
-            font-size: 13px;
-            margin-bottom: 24px;
-            line-height: 1.6;
-            color: var(--text-light);
-            text-align: left;
-        }
-
+        .modal-title { color: var(--danger); font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+        .modal-body { font-size: 13px; margin-bottom: 24px; line-height: 1.6; color: var(--text-light); text-align: left; }
         .modal-btn {
-            background: var(--danger);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-family: 'Inter', sans-serif;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            width: 100%;
-            box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2);
-        }
-
-        .modal-btn:hover {
-            background: #dc2626;
-        }
-
-        .loading {
-            text-align: center;
-            font-size: 13px;
-            color: #d97706;
-            margin-top: 12px;
-            font-weight: 500;
-            display: none;
+            background: var(--danger); color: white; border: none;
+            padding: 10px 20px; border-radius: 8px; font-family: 'Inter', sans-serif;
+            font-weight: 600; font-size: 14px; cursor: pointer; width: 100%;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Kontrol Pipa AC</h2>
+    <h2>Sistem Kontrol Pipa AC</h2>
     
-    <div class="rule-card">
-        <strong>Aturan Gudang:</strong><br>
-        • Masukkan stok awal, merk, & ukuran pipa.<br>
-        • Masukkan panjang pipa bawa & terpakai.<br>
-        • Sisa yang dibawa pulang <b>TIDAK BOLEH 1 atau 2 meter</b>!
+    <!-- Navigasi Halaman -->
+    <div class="nav-tabs">
+        <button class="nav-tab active" onclick="switchPage('teknisi')">📱 Halaman Teknisi</button>
+        <button class="nav-tab" onclick="switchPage('admin')">📊 Halaman Admin (Live Sheets)</button>
     </div>
 
-    <form id="pipeForm">
-        <div class="form-group">
-            <label>Nama Teknisi</label>
-            <input type="text" id="teknisi" required placeholder="Contoh: Budi">
+    <!-- HALAMAN 1: TEKNISI -->
+    <div id="pageTeknisi" class="page-section active">
+        <div class="rule-card">
+            <strong>Aturan Gudang:</strong><br>
+            • Masukkan stok awal, merk, & ukuran pipa.<br>
+            • Masukkan pipa bawa & terpakai.<br>
+            • Sisa pulang <b>TIDAK BOLEH 1 atau 2 meter</b>!
         </div>
-        <div class="form-group">
-            <label>Merk Pipa</label>
-            <input type="text" id="merkPipa" required placeholder="Contoh: Tateho / Hoda">
+
+        <form id="pipeForm">
+            <div class="form-group">
+                <label>Nama Teknisi</label>
+                <input type="text" id="teknisi" required placeholder="Contoh: Budi">
+            </div>
+            <div class="form-group">
+                <label>Merk Pipa</label>
+                <input type="text" id="merkPipa" required placeholder="Contoh: Tateho / Hoda">
+            </div>
+            <div class="form-group">
+                <label>Ukuran Pipa</label>
+                <input type="text" id="ukuranPipa" required placeholder="Contoh: 1/4 - 3/8">
+            </div>
+            <div class="form-group">
+                <label>Stok Awal Pipa di Gudang (Meter)</label>
+                <input type="number" id="stokAwal" required placeholder="Contoh: 30 atau 10" min="1">
+            </div>
+            <div class="form-group">
+                <label>Nama Customer / Lokasi</label>
+                <input type="text" id="customer" required placeholder="Contoh: Pak Joko">
+            </div>
+            <div class="form-group">
+                <label>Pipa yang DIBAWA untuk Job Ini (Meter)</label>
+                <input type="number" id="pipaBawa" required placeholder="Contoh: 10" min="1">
+            </div>
+            <div class="form-group">
+                <label>Pipa yang TERPAKAI Aktual (Meter)</label>
+                <input type="number" id="pipaPakai" required placeholder="Contoh: 8" min="1">
+            </div>
+            <div class="form-group">
+                <label>Sisa Pipa yang DIBAWA PULANG (Otomatis)</label>
+                <input type="text" id="sisaPulang" class="readonly-input" readonly placeholder="Terhitung otomatis">
+            </div>
+            
+            <button type="submit" class="btn-action" id="btnSubmit">Kirim Laporan</button>
+            <div id="loadingTeknisi" style="text-align:center; font-size:13px; color:#d97706; margin-top:10px; display:none;">Mengirim data ke Google Sheets...</div>
+        </form>
+    </div>
+
+    <!-- HALAMAN 2: ADMIN (MENGAMBIL DATA LANGSUNG DARI SHEETS) -->
+    <div id="pageAdmin" class="page-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 style="margin: 0; font-size: 16px; color: var(--primary);">Live Rekap dari Google Sheets</h3>
+            <button onclick="loadAdminTable()" style="background:var(--primary-light); color:white; border:none; padding:7px 12px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">🔄 Refresh Data</button>
         </div>
-        <div class="form-group">
-            <label>Ukuran Pipa</label>
-            <input type="text" id="ukuranPipa" required placeholder="Contoh: 1/4 - 3/8">
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Waktu</th>
+                        <th>Teknisi</th>
+                        <th>Merk & Ukuran</th>
+                        <th>Customer</th>
+                        <th>Stok Awal</th>
+                        <th>Dibawa</th>
+                        <th>Terpakai</th>
+                        <th>Sisa Pulang</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="adminTableBody">
+                    <tr><td colspan="9" class="loading-text">Memuat data dari Google Sheets...</td></tr>
+                </tbody>
+            </table>
         </div>
-        <div class="form-group">
-            <label>Stok Awal Pipa di Gudang (Meter)</label>
-            <input type="number" id="stokAwal" required placeholder="Contoh: 30 atau 10" min="1">
-        </div>
-        <div class="form-group">
-            <label>Nama Customer / Lokasi</label>
-            <input type="text" id="customer" required placeholder="Contoh: Pak Joko">
-        </div>
-        <div class="form-group">
-            <label>Pipa yang DIBAWA untuk Job Ini (Meter)</label>
-            <input type="number" id="pipaBawa" required placeholder="Contoh: 10" min="1">
-        </div>
-        <div class="form-group">
-            <label>Pipa yang TERPAKAI Aktual (Meter)</label>
-            <input type="number" id="pipaPakai" required placeholder="Contoh: 8" min="1">
-        </div>
-        <div class="form-group">
-            <label>Sisa Pipa yang DIBAWA PULANG (Otomatis)</label>
-            <input type="text" id="sisaPulang" class="readonly-input" readonly placeholder="Terhitung otomatis">
-        </div>
-        
-        <button type="submit" id="btnSubmit">Kirim Laporan</button>
-        <div id="loadingText" class="loading">Mengirim data ke Google Sheets...</div>
-    </form>
+    </div>
 </div>
 
-<!-- Modal Peringatan Smooth -->
+<!-- Modal Peringatan -->
 <div id="alertModal" class="modal">
     <div class="modal-content">
         <div class="modal-title" id="modalTitle">⛔ PELANGGARAN SISA 1-2 METER</div>
@@ -280,8 +304,23 @@
 </div>
 
 <script>
-    // GANTI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA:
+    // MASUKKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI:
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4xHubo3GdyGj4joHV4_pMw55uFFJXuh_j2R7j_jD2puCEN-CDGw3YGmgLNY2xk9Ma6g/exec";
+
+    function switchPage(page) {
+        document.getElementById('pageTeknisi').classList.remove('active');
+        document.getElementById('pageAdmin').classList.remove('active');
+        document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+
+        if(page === 'teknisi') {
+            document.getElementById('pageTeknisi').classList.add('active');
+            event.target.classList.add('active');
+        } else {
+            document.getElementById('pageAdmin').classList.add('active');
+            event.target.classList.add('active');
+            loadAdminTable(); // Otomatis tarik data terbaru saat admin buka tab ini
+        }
+    }
 
     const stokAwal = document.getElementById('stokAwal');
     const pipaBawa = document.getElementById('pipaBawa');
@@ -291,7 +330,7 @@
     const modalTitle = document.getElementById('modalTitle');
     const modalText = document.getElementById('modalText');
     const btnSubmit = document.getElementById('btnSubmit');
-    const loadingText = document.getElementById('loadingText');
+    const loadingTeknisi = document.getElementById('loadingTeknisi');
 
     function hitungSisa() {
         let bawa = parseFloat(pipaBawa.value) || 0;
@@ -312,6 +351,7 @@
     pipaBawa.addEventListener('input', hitungSisa);
     pipaPakai.addEventListener('input', hitungSisa);
 
+    // Kirim Data dari Form Teknisi ke Google Sheets
     document.getElementById('pipeForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
@@ -322,7 +362,7 @@
 
         if (bawa > awal) {
             modalTitle.innerText = "⛔ STOK TIDAK CUKUP";
-            modalText.innerHTML = `Pipa yang Anda bawa (<b>${bawa}m</b>) melebihi stok awal pipa di gudang (<b>${awal}m</b>). Periksa kembali input Anda!`;
+            modalText.innerHTML = `Pipa yang dibawa (<b>${bawa}m</b>) melebihi stok awal gudang (<b>${awal}m</b>).`;
             openModal();
             return;
         }
@@ -354,7 +394,7 @@
         };
 
         btnSubmit.disabled = true;
-        loadingText.style.display = "block";
+        loadingTeknisi.style.display = "block";
 
         fetch(SCRIPT_URL, {
             method: 'POST',
@@ -363,7 +403,7 @@
             body: JSON.stringify(payload)
         })
         .then(() => {
-            alert("Laporan berhasil dikirim ke Google Sheets!");
+            alert("Laporan berhasil dikirim dan tersimpan otomatis di Google Sheets!");
             document.getElementById('pipeForm').reset();
             sisaPulang.value = "";
         })
@@ -372,17 +412,48 @@
         })
         .finally(() => {
             btnSubmit.disabled = false;
-            loadingText.style.display = "none";
+            loadingTeknisi.style.display = "none";
         });
     });
 
-    function openModal() {
-        alertModal.classList.add('show');
+    // Ambil dan Tampilkan Data dari Google Sheets untuk Admin
+    function loadAdminTable() {
+        let tbody = document.getElementById('adminTableBody');
+        tbody.innerHTML = `<tr><td colspan="9" class="loading-text">Mengambil data terbaru dari Google Sheets...</td></tr>`;
+
+        fetch(SCRIPT_URL)
+        .then(res => res.json())
+        .then(data => {
+            tbody.innerHTML = "";
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="loading-text">Belum ada data laporan di Google Sheets.</td></tr>`;
+                return;
+            }
+
+            // Urutkan dari yang terbaru (dibalik)
+            data.reverse().forEach(item => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.waktu}</td>
+                    <td><b>${item.teknisi}</b></td>
+                    <td>${item.merkPipa} (${item.ukuranPipa})</td>
+                    <td>${item.customer}</td>
+                    <td>${item.stokAwal}</td>
+                    <td>${item.bawa}</td>
+                    <td>${item.pakai}</td>
+                    <td><b>${item.sisa}</b></td>
+                    <td><span class="badge-ok">${item.status}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        })
+        .catch(err => {
+            tbody.innerHTML = `<tr><td colspan="9" class="loading-text" style="color:var(--danger);">Gagal memuat data. Periksa koneksi atau URL Apps Script.</td></tr>`;
+        });
     }
 
-    function closeModal() {
-        alertModal.classList.remove('show');
-    }
+    function openModal() { alertModal.classList.add('show'); }
+    function closeModal() { alertModal.classList.remove('show'); }
 </script>
 
 </body>
