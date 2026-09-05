@@ -3,75 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cek Stok Sisa Pipa AC</title>
+    <title>Laporan Pipa & Sisa Pulang Teknisi</title>
     <style>
         :root { --primary: #2c3e50; --success: #27ae60; --danger: #c0392b; --bg: #f4f6f9; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 15px; color: #333; }
         .container { max-width: 500px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin: auto; }
         h2 { color: var(--primary); text-align: center; margin-top: 0; font-size: 20px; }
-        .box-info { background: #e8f4fd; border-left: 4px solid #3498db; padding: 10px; font-size: 13px; margin-bottom: 15px; border-radius: 4px; }
+        .rule-card { background: #e8f4fd; border-left: 4px solid #3498db; padding: 12px; font-size: 13px; margin-bottom: 20px; border-radius: 4px; line-height: 1.5; }
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 14px; }
-        input, select { width: 100%; padding: 10px 12px; border: 1px solid #ccd1d9; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        input { width: 100%; padding: 10px 12px; border: 1px solid #ccd1d9; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        .readonly-input { background: #e9ecef; font-weight: bold; color: #495057; }
         button { background: var(--success); color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
         button:hover { background: #219653; }
-        .tab-btn { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab-btn button { background: #bdc3c7; font-size: 14px; padding: 8px; }
-        .tab-btn button.active { background: var(--primary); }
-        .section { display: none; }
-        .section.active { display: block; }
+        button:disabled { background: #95a5a6; cursor: not-allowed; }
+        
+        /* Modal Peringatan */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 25px; border-radius: 8px; max-width: 350px; width: 90%; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .modal-title { color: var(--danger); font-size: 17px; font-weight: bold; margin-bottom: 10px; }
+        .modal-body { font-size: 13px; margin-bottom: 20px; line-height: 1.5; color: #555; text-align: left; }
+        .modal-btn { background: var(--danger); color: white; border: none; padding: 8px 16px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; }
+        .loading { text-align: center; font-size: 13px; color: #e67e22; margin-top: 8px; display: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Manajemen Sisa Pipa AC</h2>
+    <h2>Laporan Pipa & Sisa Pulang</h2>
     
-    <div class="tab-btn">
-        <button id="btnTab1" class="active" onclick="switchTab(1)">1. Cek & Pakai Sisa</button>
-        <button id="btnTab2" onclick="switchTab(2)">2. Input Sisa Baru</button>
+    <div class="rule-card">
+        <strong>Aturan Ketat Gudang:</strong><br>
+        1. Teknisi bebas membawa pipa lebih (cadangan) untuk jaga-jaga.<br>
+        2. Sisa pipa yang <b>dibawa pulang kembali ke gudang</b> TIDAK BOLEH 1 atau 2 meter (harus 0 meter atau minimal 3 meter ke atas!).
     </div>
 
-    <!-- TAB 1: PAKAI STOK SISA -->
-    <div id="tab1" class="section active">
-        <div class="box-info">Pilih sisa pipa yang tersedia di gudang/teknisi yang cocok dengan kebutuhan customer.</div>
-        <form id="formPakai">
-            <div class="form-group">
-                <label>Nama Teknisi yang Mengerjakan</label>
-                <input type="text" id="teknisiPakai" required placeholder="Nama Anda">
-            </div>
-            <div class="form-group">
-                <label>Nama Customer / Lokasi</label>
-                <input type="text" id="customerPakai" required placeholder="Nama customer">
-            </div>
-            <div class="form-group">
-                <label>Pilih Potongan Sisa Pipa yang Ada</label>
-                <select id="selectSisa" required>
-                    <option value="" disabled selected>-- Memuat daftar sisa pipa... --</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Panjang yang Dipakai untuk Customer Ini (Meter)</label>
-                <input type="number" id="panjangPakai" required placeholder="Contoh: 8" min="1">
-            </div>
-            <button type="submit">Gunakan Pipa Sisa Ini</button>
-        </form>
-    </div>
+    <form id="pipeForm">
+        <div class="form-group">
+            <label>Nama Teknisi</label>
+            <input type="text" id="teknisi" required placeholder="Contoh: Budi">
+        </div>
+        <div class="form-group">
+            <label>Nama Customer / Lokasi</label>
+            <input type="text" id="customer" required placeholder="Contoh: Pak Joko">
+        </div>
+        <div class="form-group">
+            <label>Pipa yang DIBAWA (Termasuk Cadangan)</label>
+            <input type="number" id="pipaBawa" required placeholder="Contoh: Bawa 10 meter" min="1">
+        </div>
+        <div class="form-group">
+            <label>Pipa yang TERPAKAI Aktual di Lokasi</label>
+            <input type="number" id="pipaPakai" required placeholder="Contoh: Terpakai 8 meter" min="1">
+        </div>
+        <div class="form-group">
+            <label>Sisa Pipa yang DIBAWA PULANG (Otomatis)</label>
+            <input type="text" id="sisaPulang" class="readonly-input" readonly placeholder="Akan terhitung otomatis">
+        </div>
+        
+        <button type="submit" id="btnSubmit">Kirim Laporan ke Google Sheets</button>
+        <div id="loadingText" class="loading">Sedang mengirim data...</div>
+    </form>
+</div>
 
-    <!-- TAB 2: INPUT SISA BARU (JIKA HABIS POTONG DARI DOS) -->
-    <div id="tab2" class="section">
-        <div class="box-info">Jika ada potongan sisa bersih (misal sisa 6m, 8m, dll) yang aman, daftarkan ke sini agar bisa dipakai nanti.</div>
-        <form id="formSisaBaru">
-            <div class="form-group">
-                <label>Nama Teknisi</label>
-                <input type="text" id="teknisiBaru" required placeholder="Nama Anda">
-            </div>
-            <div class="form-group">
-                <label>Panjang Sisa Pipa yang Dihasilkan (Meter)</label>
-                <input type="number" id="panjangBaru" required placeholder="Contoh: 8" min="3">
-            </div>
-            <button type="submit" style="background: #2980b9;">Daftarkan Sisa ke Sistem</button>
-        </form>
+<!-- Modal Peringatan Sisa 1-2 Meter -->
+<div id="alertModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-title">⛔ PELANGGARAN SISA 1-2 METER!</div>
+        <div class="modal-body" id="modalText">
+            Isi pesan peringatan...
+        </div>
+        <button class="modal-btn" onclick="closeModal()">Ubah Perhitungan</button>
     </div>
 </div>
 
@@ -79,101 +80,89 @@
     // MASUKKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI:
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4xHubo3GdyGj4joHV4_pMw55uFFJXuh_j2R7j_jD2puCEN-CDGw3YGmgLNY2xk9Ma6g/exec";
 
-    function switchTab(tabNum) {
-        document.getElementById('tab1').classList.remove('active');
-        document.getElementById('tab2').classList.remove('active');
-        document.getElementById('btnTab1').classList.remove('active');
-        document.getElementById('btnTab2').classList.remove('active');
+    const pipaBawa = document.getElementById('pipaBawa');
+    const pipaPakai = document.getElementById('pipaPakai');
+    const sisaPulang = document.getElementById('sisaPulang');
+    const alertModal = document.getElementById('alertModal');
+    const modalText = document.getElementById('modalText');
+    const btnSubmit = document.getElementById('btnSubmit');
+    const loadingText = document.getElementById('loadingText');
 
-        document.getElementById('tab' + tabNum).classList.add('active');
-        document.getElementById('btnTab' + tabNum).classList.add('active');
-    }
-
-    // Ambil data sisa pipa yang tersedia saat halaman dibuka
-    function loadStokSisa() {
-        fetch(SCRIPT_URL)
-        .then(res => res.json())
-        .then(data => {
-            let select = document.getElementById('selectSisa');
-            select.innerHTML = '<option value="" disabled selected>-- Pilih Potongan Sisa --</option>';
-            if(data.length === 0) {
-                select.innerHTML = '<option value="" disabled selected>Tidak ada sisa pipa tersedia</option>';
-                return;
+    function hitungSisa() {
+        let bawa = parseFloat(pipaBawa.value) || 0;
+        let pakai = parseFloat(pipaPakai.value) || 0;
+        let sisa = bawa - pakai;
+        
+        if (pipaBawa.value !== "" && pipaPakai.value !== "") {
+            if (sisa < 0) {
+                sisaPulang.value = "Pemakaian melebihi bawaan!";
+            } else {
+                sisaPulang.value = sisa + " Meter";
             }
-            data.forEach(item => {
-                let opt = document.createElement('option');
-                opt.value = item.id;
-                opt.text = `${item.id} - Sisa ${item.panjang}m (Pegang: ${item.teknisi})`;
-                opt.dataset.panjang = item.panjang;
-                select.appendChild(opt);
-            });
-        })
-        .catch(err => {
-            console.log("Gagal memuat data", err);
-        });
+        } else {
+            sisaPulang.value = "";
+        }
     }
 
-    // Submit Pakai Sisa
-    document.getElementById('formPakai').addEventListener('submit', function(e) {
-        e.preventDefault();
-        let select = document.getElementById('selectSisa');
-        let selectedOpt = select.options[select.selectedIndex];
-        let maxPanjang = parseFloat(selectedOpt.dataset.panjang);
-        let pakai = parseFloat(document.getElementById('panjangPakai').value);
-        let sisaHasil = maxPanjang - pakai;
+    pipaBawa.addEventListener('input', hitungSisa);
+    pipaPakai.addEventListener('input', hitungSisa);
 
-        if (pakai > maxPanjang) {
-            alert("Kebutuhan melebihi panjang sisa pipa yang dipilih!");
+    document.getElementById('pipeForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        let bawa = parseFloat(pipaBawa.value);
+        let pakai = parseFloat(pipaPakai.value);
+        let sisa = bawa - pakai;
+
+        if (sisa < 0) {
+            alert("Jumlah pipa terpakai tidak boleh lebih besar dari pipa yang dibawa!");
             return;
         }
 
-        // Validasi Sisa 1-2 meter
-        if (sisaHasil > 0 && sisaHasil < 3) {
-            alert(`PERINGATAN! Jika dipakai ${pakai}m dari sisa ${maxPanjang}m, maka sisanya menjadi ${sisaHasil} meter.\n\nSisa 1-2 meter DILARANG KERAS!\nSolusi: Habiskan seluruh sisa tersebut (pakai ${maxPanjang}m) atau cari ukuran lain.`);
+        // VALIDASI UTAMA: Cek apakah sisa pulang 1 atau 2 meter
+        if (sisa > 0 && sisa < 3) {
+            modalText.innerHTML = `Anda membawa <b>${bawa} meter</b> dan terpakai <b>${pakai} meter</b>.<br><br>` +
+                                  `Sisa yang dibawa pulang adalah <b>${sisa} meter</b>.<br><br>` +
+                                  `<span style="color:red; font-weight:bold;">Sisa 1-2 meter dilarang karena menjadi barang mati!</span><br><br>` +
+                                  `<b>Solusi:</b> Sesuaikan pemakaian atau potong pas agar sisa pulang menjadi 0 meter atau minimal 3 meter.`;
+            alertModal.style.display = "flex";
             return;
         }
 
         let payload = {
-            action: "pakai_sisa",
-            teknisi: document.getElementById('teknisiPakai').value,
-            customer: document.getElementById('customerPakai').value,
-            idSisa: select.value,
-            terpakai: pakai
+            teknisi: document.getElementById('teknisi').value,
+            customer: document.getElementById('customer').value,
+            bawa: bawa,
+            pakai: pakai
         };
 
-        fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) })
+        btnSubmit.disabled = true;
+        loadingText.style.display = "block";
+
+        // Mengirim data menggunakan fetch ke Google Sheets
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
         .then(() => {
-            alert("Pipa sisa berhasil digunakan dan tercatat di sistem!");
-            document.getElementById('formPakai').reset();
-            loadStokSisa();
+            alert("Laporan berhasil dikirim! Detail nama teknisi, pipa dibawa, dan sisa pulang sudah tercatat di Google Sheets.");
+            document.getElementById('pipeForm').reset();
+            sisaPulang.value = "";
+        })
+        .catch(error => {
+            alert("Terjadi kesalahan koneksi: " + error);
+        })
+        .finally(() => {
+            btnSubmit.disabled = false;
+            loadingText.style.display = "none";
         });
     });
 
-    // Submit Sisa Baru
-    document.getElementById('formSisaBaru').addEventListener('submit', function(e) {
-        e.preventDefault();
-        let panjang = parseFloat(document.getElementById('panjangBaru').value);
-
-        if (panjang > 0 && panjang < 3) {
-            alert("Tidak boleh mendaftarkan sisa di bawah 3 meter (1-2 meter dilarang)!");
-            return;
-        }
-
-        let payload = {
-            action: "tambah_sisa",
-            teknisi: document.getElementById('teknisiBaru').value,
-            panjang: panjang
-        };
-
-        fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) })
-        .then(() => {
-            alert("Sisa pipa baru berhasil didaftarkan ke gudang!");
-            document.getElementById('formSisaBaru').reset();
-            loadStokSisa();
-        });
-    });
-
-    loadStokSisa();
+    function closeModal() {
+        alertModal.style.display = "none";
+    }
 </script>
 
 </body>
