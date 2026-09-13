@@ -3,11 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kontrol Pipa AC (Sheets + Admin Web)</title>
+    <title>Kontrol Pipa AC (Firebase + Admin Web)</title>
     <!-- Import Google Font: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Import Firebase SDK (Versi Modular) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // ==========================================
+        // MASUKKAN KONFIGURASI FIREBASE ANDA DI SINI
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "GANTI_DENGAN_API_KEY_ANDA",
+            authDomain: "GANTI_DENGAN_AUTH_DOMAIN_ANDA",
+            projectId: "GANTI_DENGAN_PROJECT_ID_ANDA",
+            storageBucket: "GANTI_DENGAN_STORAGE_BUCKET_ANDA",
+            messagingSenderId: "GANTI_DENGAN_MESSAGING_SENDER_ID_ANDA",
+            appId: "GANTI_DENGAN_APP_ID_ANDA"
+        };
+
+        // Inisialisasi Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Fungsi Hitung Sisa Pipa Otomatis
+        const stokAwal = document.getElementById('stokAwal');
+        const pipaBawa = document.getElementById('pipaBawa');
+        const pipaPakai = document.getElementById('pipaPakai');
+        const sisaPulang = document.getElementById('sisaPulang');
+        const alertModal = document.getElementById('alertModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalText = document.getElementById('modalText');
+        const btnSubmit = document.getElementById('btnSubmit');
+        const loadingTeknisi = document.getElementById('loadingTeknisi');
+
+        function hitungSisa() {
+            let bawa = parseFloat(pipaBawa.value) || 0;
+            let pakai = parseFloat(pipaPakai.value) || 0;
+            let sisa = bawa - pakai;
+            
+            if (pipaBawa.value !== "" && pipaPakai.value !== "") {
+                if (sisa < 0) {
+                    sisaPulang.value = "Pemakaian melebihi bawaan!";
+                } else {
+                    sisaPulang.value = sisa + " Meter";
+                }
+            } else {
+                sisaPulang.value = "";
+            }
+        }
+
+        pipaBawa.addEventListener('input', hitungSisa);
+        pipaPakai.addEventListener('input', hitungSisa);
+
+        // Kirim Data dari Form Teknisi ke Firebase Firestore
+        document.getElementById('pipeForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            let awal = parseFloat(stokAwal.value);
+            let bawa = parseFloat(pipaBawa.value);
+            let pakai = parseFloat(pipaPakai.value);
+            let sisa = bawa - pakai;
+
+            if (bawa > awal) {
+                modalTitle.innerText = "⛔ STOK TIDAK CUKUP";
+                modalText.innerHTML = `Pipa yang dibawa (<b>${bawa}m</b>) melebihi stok awal gudang (<b>${awal}m</b>).`;
+                openModal();
+                return;
+            }
+
+            if (sisa < 0) {
+                alert("Jumlah pipa terpakai tidak boleh lebih besar dari pipa yang dibawa!");
+                return;
+            }
+
+            // VALIDASI UTAMA: Cek sisa 1 atau 2 meter
+            if (sisa > 0 && sisa < 3) {
+                modalTitle.innerText = "⛔ PELANGGARAN SISA 1-2 METER";
+                modalText.innerHTML = `Anda membawa <b>${bawa}m</b> dan terpakai <b>${pakai}m</b>.<br><br>` +
+                                      `Sisa yang dibawa pulang adalah <b>${sisa} meter</b>.<br><br>` +
+                                      `<span style="color:var(--danger); font-weight:600;">Sisa 1-2 meter dilarang keras karena menjadi barang mati!</span><br><br>` +
+                                      `<b>Solusi:</b> Sesuaikan pemakaian agar sisa pulang menjadi 0 meter atau minimal 3 meter ke atas.`;
+                openModal();
+                return;
+            }
+
+            let payload = {
+                teknisi: document.getElementById('teknisi').value,
+                merkPipa: document.getElementById('merkPipa').value,
+                ukuranPipa: document.getElementById('ukuranPipa').value,
+                stokAwal: awal,
+                customer: document.getElementById('customer').value,
+                bawa: bawa,
+                pakai: pakai,
+                sisa: sisa + " Meter",
+                status: "OK",
+                waktu: new Date().toLocaleString('id-ID'),
+                timestamp: serverTimestamp()
+            };
+
+            btnSubmit.disabled = true;
+            loadingTeknisi.style.display = "block";
+            loadingTeknisi.innerText = "Menyimpan ke Firebase...";
+
+            try {
+                await addDoc(collection(db, "laporanPipa"), payload);
+                alert("Laporan berhasil dikirim dan tersimpan otomatis di Firebase!");
+                document.getElementById('pipeForm').reset();
+                sisaPulang.value = "";
+            } catch (error) {
+                alert("Gagal menyimpan data: " + error.message);
+            } finally {
+                btnSubmit.disabled = false;
+                loadingTeknisi.style.display = "none";
+            }
+        });
+
+        // Ambil dan Tampilkan Data dari Firebase untuk Admin
+        window.loadAdminTable = async function() {
+            let tbody = document.getElementById('adminTableBody');
+            tbody.innerHTML = `<tr><td colspan="9" class="loading-text">Mengambil data terbaru dari Firebase...</td></tr>`;
+
+            try {
+                const q = query(collection(db, "laporanPipa"), orderBy("timestamp", "desc"));
+                const querySnapshot = await getDocs(q);
+                
+                tbody.innerHTML = "";
+                if (querySnapshot.empty) {
+                    tbody.innerHTML = `<tr><td colspan="9" class="loading-text">Belum ada data laporan di Firebase.</td></tr>`;
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    let item = doc.data();
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${item.waktu || '-'}</td>
+                        <td><b>${item.teknisi}</b></td>
+                        <td>${item.merkPipa} (${item.ukuranPipa})</td>
+                        <td>${item.customer}</td>
+                        <td>${item.stokAwal}</td>
+                        <td>${item.bawa}</td>
+                        <td>${item.pakai}</td>
+                        <td><b>${item.sisa}</b></td>
+                        <td><span class="badge-ok">${item.status}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="9" class="loading-text" style="color:var(--danger);">Gagal memuat data dari Firebase. Pastikan aturan Firestore Database (Rules) sudah diset Public/Test Mode.</td></tr>`;
+            }
+        }
+    </script>
     
     <style>
         :root {
@@ -129,10 +280,7 @@
             outline: none;
         }
 
-        input:hover {
-            border-color: #94a3b8;
-        }
-
+        input:hover { border-color: #94a3b8; }
         input:focus {
             border-color: var(--primary-light);
             background: #fff;
@@ -166,10 +314,6 @@
             background: #059669; 
             transform: translateY(-1px);
             box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3);
-        }
-
-        button.btn-action:active {
-            transform: translateY(0);
         }
 
         /* Tabel Rekap Admin */
@@ -222,11 +366,6 @@
             background: white; padding: 30px; border-radius: 20px;
             max-width: 400px; width: 90%; text-align: center;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        @keyframes modalPop {
-            from { transform: scale(0.95); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
         }
         .modal-title { color: var(--danger); font-size: 18px; font-weight: 700; margin-bottom: 12px; }
         .modal-body { font-size: 13.5px; margin-bottom: 24px; line-height: 1.6; color: var(--text-light); text-align: left; }
@@ -234,20 +373,18 @@
             background: var(--danger); color: white; border: none;
             padding: 12px 20px; border-radius: 10px; font-family: 'Inter', sans-serif;
             font-weight: 600; font-size: 14px; cursor: pointer; width: 100%;
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
         }
-        .modal-btn:hover { background: #dc2626; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Sistem Kontrol Pipa AC</h2>
+    <h2>Sistem Kontrol Pipa AC (Firebase)</h2>
     
-    <!-- Navigasi Halaman -->
+    <!-- Navigasi Tab / Halaman -->
     <div class="nav-tabs">
         <button class="nav-tab active" onclick="switchPage('teknisi')">📱 Halaman Teknisi</button>
-        <button class="nav-tab" onclick="switchPage('admin')">📊 Halaman Admin (Live Sheets)</button>
+        <button class="nav-tab" onclick="switchPage('admin')">📊 Halaman Admin (Live Firebase)</button>
     </div>
 
     <!-- HALAMAN 1: TEKNISI -->
@@ -294,15 +431,15 @@
             </div>
             
             <button type="submit" class="btn-action" id="btnSubmit">Kirim Laporan</button>
-            <div id="loadingTeknisi" style="text-align:center; font-size:13.5px; color:#d97706; margin-top:12px; display:none; font-weight:500;">Mengirim data ke Google Sheets...</div>
+            <div id="loadingTeknisi" style="text-align:center; font-size:13.5px; color:#d97706; margin-top:12px; display:none; font-weight:500;">Menyimpan data...</div>
         </form>
     </div>
 
-    <!-- HALAMAN 2: ADMIN (MENGAMBIL DATA LANGSUNG DARI SHEETS) -->
+    <!-- HALAMAN 2: ADMIN -->
     <div id="pageAdmin" class="page-section">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <h3 style="margin: 0; font-size: 16px; color: var(--primary);">Live Rekap dari Google Sheets</h3>
-            <button onclick="loadAdminTable()" style="background:var(--primary-light); color:white; border:none; padding:8px 14px; border-radius:8px; font-size:12.5px; font-weight:600; cursor:pointer; box-shadow: 0 2px 5px rgba(59,130,246,0.2);">🔄 Refresh Data</button>
+            <h3 style="margin: 0; font-size: 16px; color: var(--primary);">Live Rekap dari Firebase</h3>
+            <button onclick="loadAdminTable()" style="background:var(--primary-light); color:white; border:none; padding:8px 14px; border-radius:8px; font-size:12.5px; font-weight:600; cursor:pointer;">🔄 Refresh Data</button>
         </div>
         <div class="table-responsive">
             <table>
@@ -320,7 +457,7 @@
                     </tr>
                 </thead>
                 <tbody id="adminTableBody">
-                    <tr><td colspan="9" class="loading-text">Memuat data dari Google Sheets...</td></tr>
+                    <tr><td colspan="9" class="loading-text">Memuat data dari Firebase...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -337,9 +474,6 @@
 </div>
 
 <script>
-    // MASUKKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI:
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4xHubo3GdyGj4joHV4_pMw55uFFJXuh_j2R7j_jD2puCEN-CDGw3YGmgLNY2xk9Ma6g/exec";
-
     function switchPage(page) {
         document.getElementById('pageTeknisi').classList.remove('active');
         document.getElementById('pageAdmin').classList.remove('active');
@@ -351,139 +485,11 @@
         } else {
             document.getElementById('pageAdmin').classList.add('active');
             event.target.classList.add('active');
-            loadAdminTable(); // Otomatis tarik data terbaru saat admin buka tab ini
+            loadAdminTable(); 
         }
     }
 
-    const stokAwal = document.getElementById('stokAwal');
-    const pipaBawa = document.getElementById('pipaBawa');
-    const pipaPakai = document.getElementById('pipaPakai');
-    const sisaPulang = document.getElementById('sisaPulang');
     const alertModal = document.getElementById('alertModal');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalText = document.getElementById('modalText');
-    const btnSubmit = document.getElementById('btnSubmit');
-    const loadingTeknisi = document.getElementById('loadingTeknisi');
-
-    function hitungSisa() {
-        let bawa = parseFloat(pipaBawa.value) || 0;
-        let pakai = parseFloat(pipaPakai.value) || 0;
-        let sisa = bawa - pakai;
-        
-        if (pipaBawa.value !== "" && pipaPakai.value !== "") {
-            if (sisa < 0) {
-                sisaPulang.value = "Pemakaian melebihi bawaan!";
-            } else {
-                sisaPulang.value = sisa + " Meter";
-            }
-        } else {
-            sisaPulang.value = "";
-        }
-    }
-
-    pipaBawa.addEventListener('input', hitungSisa);
-    pipaPakai.addEventListener('input', hitungSisa);
-
-    // Kirim Data dari Form Teknisi ke Google Sheets (Dibuat Instan / Fast Response)
-    document.getElementById('pipeForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        let awal = parseFloat(stokAwal.value);
-        let bawa = parseFloat(pipaBawa.value);
-        let pakai = parseFloat(pipaPakai.value);
-        let sisa = bawa - pakai;
-
-        if (bawa > awal) {
-            modalTitle.innerText = "⛔ STOK TIDAK CUKUP";
-            modalText.innerHTML = `Pipa yang dibawa (<b>${bawa}m</b>) melebihi stok awal gudang (<b>${awal}m</b>).`;
-            openModal();
-            return;
-        }
-
-        if (sisa < 0) {
-            alert("Jumlah pipa terpakai tidak boleh lebih besar dari pipa yang dibawa!");
-            return;
-        }
-
-        // VALIDASI UTAMA: Cek sisa 1 atau 2 meter
-        if (sisa > 0 && sisa < 3) {
-            modalTitle.innerText = "⛔ PELANGGARAN SISA 1-2 METER";
-            modalText.innerHTML = `Anda membawa <b>${bawa}m</b> dan terpakai <b>${pakai}m</b>.<br><br>` +
-                                  `Sisa yang dibawa pulang adalah <b>${sisa} meter</b>.<br><br>` +
-                                  `<span style="color:var(--danger); font-weight:600;">Sisa 1-2 meter dilarang keras karena menjadi barang mati!</span><br><br>` +
-                                  `<b>Solusi:</b> Sesuaikan pemakaian agar sisa pulang menjadi 0 meter atau minimal 3 meter ke atas.`;
-            openModal();
-            return;
-        }
-
-        let payload = {
-            teknisi: document.getElementById('teknisi').value,
-            merkPipa: document.getElementById('merkPipa').value,
-            ukuranPipa: document.getElementById('ukuranPipa').value,
-            stokAwal: awal,
-            customer: document.getElementById('customer').value,
-            bawa: bawa,
-            pakai: pakai
-        };
-
-        btnSubmit.disabled = true;
-        loadingTeknisi.style.display = "block";
-        loadingTeknisi.innerText = "Mengirim data...";
-
-        // Kirim data secara background tanpa menunggu blokir CORS
-        fetch(SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        // Langsung selesaikan loading dalam waktu 1 detik agar tidak menggantung
-        setTimeout(() => {
-            alert("Laporan berhasil dikirim dan tersimpan otomatis di Google Sheets!");
-            document.getElementById('pipeForm').reset();
-            sisaPulang.value = "";
-            btnSubmit.disabled = false;
-            loadingTeknisi.style.display = "none";
-        }, 1000);
-    });
-
-    // Ambil dan Tampilkan Data dari Google Sheets untuk Admin
-    function loadAdminTable() {
-        let tbody = document.getElementById('adminTableBody');
-        tbody.innerHTML = `<tr><td colspan="9" class="loading-text">Mengambil data terbaru dari Google Sheets...</td></tr>`;
-
-        fetch(SCRIPT_URL)
-        .then(res => res.json())
-        .then(data => {
-            tbody.innerHTML = "";
-            if (data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="loading-text">Belum ada data laporan di Google Sheets.</td></tr>`;
-                return;
-            }
-
-            // Urutkan dari yang terbaru (dibalik)
-            data.reverse().forEach(item => {
-                let tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${item.waktu}</td>
-                    <td><b>${item.teknisi}</b></td>
-                    <td>${item.merkPipa} (${item.ukuranPipa})</td>
-                    <td>${item.customer}</td>
-                    <td>${item.stokAwal}</td>
-                    <td>${item.bawa}</td>
-                    <td>${item.pakai}</td>
-                    <td><b>${item.sisa}</b></td>
-                    <td><span class="badge-ok">${item.status}</span></td>
-                `;
-                tbody.appendChild(tr);
-            });
-        })
-        .catch(err => {
-            tbody.innerHTML = `<tr><td colspan="9" class="loading-text" style="color:var(--danger);">Gagal memuat data. Periksa koneksi atau URL Apps Script.</td></tr>`;
-        });
-    }
-
     function openModal() { alertModal.classList.add('show'); }
     function closeModal() { alertModal.classList.remove('show'); }
 </script>
