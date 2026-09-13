@@ -15,21 +15,24 @@
             --primary-light: #3b82f6;
             --success: #10b981;
             --danger: #ef4444;
-            --bg: #f8fafc;
+            --bg: #f1f5f9;
             --card-bg: #ffffff;
-            --border: #e2e8f0;
-            --text: #334155;
+            --border: #cbd5e1;
+            --text: #1e293b;
             --text-light: #64748b;
         }
 
-        * { box-sizing: border-box; transition: all 0.2s ease-in-out; }
+        * { 
+            box-sizing: border-box; 
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
 
         body {
             font-family: 'Inter', sans-serif;
             background: var(--bg);
             color: var(--text);
             margin: 0;
-            padding: 20px 15px;
+            padding: 30px 15px;
             display: flex;
             justify-content: center;
             align-items: flex-start;
@@ -40,38 +43,39 @@
             width: 100%;
             max-width: 800px;
             background: var(--card-bg);
-            padding: 25px 30px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-            border: 1px solid var(--border);
+            padding: 35px 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(226, 232, 240, 0.8);
         }
 
         h2 {
             color: var(--primary);
             text-align: center;
             margin-top: 0;
-            margin-bottom: 20px;
-            font-size: 22px;
+            margin-bottom: 24px;
+            font-size: 24px;
             font-weight: 700;
+            letter-spacing: -0.025em;
         }
 
         /* Navigasi Tab / Halaman */
         .nav-tabs {
             display: flex;
-            background: #f1f5f9;
-            padding: 4px;
-            border-radius: 10px;
-            margin-bottom: 25px;
+            background: #e2e8f0;
+            padding: 5px;
+            border-radius: 12px;
+            margin-bottom: 30px;
         }
 
         .nav-tab {
             flex: 1;
-            padding: 10px;
+            padding: 12px;
             text-align: center;
             font-weight: 600;
             font-size: 14px;
             color: var(--text-light);
-            border-radius: 8px;
+            border-radius: 9px;
             cursor: pointer;
             border: none;
             background: transparent;
@@ -84,88 +88,110 @@
         }
 
         .page-section { display: none; }
-        .page-section.active { display: block; }
+        .page-section.active { display: block; animation: fadeIn 0.4s ease-in-out; }
 
-        .rule-card {
-            background: #eff6ff;
-            border-left: 4px solid var(--primary-light);
-            padding: 14px 16px;
-            font-size: 13px;
-            margin-bottom: 24px;
-            border-radius: 8px;
-            line-height: 1.5;
-            color: #1e3a8a;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .form-group { margin-bottom: 18px; }
+        .rule-card {
+            background: #f0fdf4;
+            border-left: 4px solid var(--success);
+            padding: 16px 20px;
+            font-size: 13.5px;
+            margin-bottom: 28px;
+            border-radius: 10px;
+            line-height: 1.6;
+            color: #166534;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
+        }
+
+        .form-group { margin-bottom: 20px; }
 
         label {
             display: block;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             font-weight: 600;
-            font-size: 13px;
+            font-size: 13.5px;
             color: var(--primary);
         }
 
         input {
             width: 100%;
-            padding: 11px 14px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
+            padding: 13px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
             font-family: 'Inter', sans-serif;
-            font-size: 14px;
+            font-size: 14.5px;
             color: var(--text);
             background: #fff;
             outline: none;
         }
 
+        input:hover {
+            border-color: #94a3b8;
+        }
+
         input:focus {
             border-color: var(--primary-light);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
         }
 
         .readonly-input {
-            background: #f1f5f9;
+            background: #f8fafc;
             font-weight: 600;
             color: #475569;
             cursor: not-allowed;
+            border-color: #e2e8f0;
         }
 
         button.btn-action {
             background: var(--success);
             color: white;
             border: none;
-            padding: 13px;
+            padding: 14px;
             width: 100%;
-            border-radius: 8px;
+            border-radius: 10px;
             font-family: 'Inter', sans-serif;
             font-size: 15px;
             font-weight: 600;
             cursor: pointer;
             margin-top: 10px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
         }
 
-        button.btn-action:hover { background: #059669; }
+        button.btn-action:hover { 
+            background: #059669; 
+            transform: translateY(-1px);
+            box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        button.btn-action:active {
+            transform: translateY(0);
+        }
 
         /* Tabel Rekap Admin */
         .table-responsive {
             overflow-x: auto;
             margin-top: 15px;
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: 12px;
+            background: white;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 12px;
+            font-size: 13px;
             text-align: left;
             white-space: nowrap;
         }
 
         th, td {
-            padding: 10px 12px;
-            border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
+            border-bottom: 1px solid #f1f5f9;
         }
 
         th {
@@ -178,7 +204,7 @@
         tr:hover { background: #f1f5f9; }
 
         .badge-ok { color: var(--success); font-weight: 600; }
-        .loading-text { text-align: center; padding: 20px; color: var(--text-light); font-size: 13px; }
+        .loading-text { text-align: center; padding: 30px; color: var(--text-light); font-size: 14px; }
 
         /* Modal Peringatan */
         .modal {
@@ -186,24 +212,31 @@
             position: fixed;
             z-index: 1000;
             left: 0; top: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(4px);
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(6px);
             align-items: center; justify-content: center;
             opacity: 0; transition: opacity 0.3s ease;
         }
         .modal.show { display: flex; opacity: 1; }
         .modal-content {
-            background: white; padding: 25px 30px; border-radius: 16px;
-            max-width: 380px; width: 90%; text-align: center;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            background: white; padding: 30px; border-radius: 20px;
+            max-width: 400px; width: 90%; text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        .modal-title { color: var(--danger); font-size: 18px; font-weight: 700; margin-bottom: 10px; }
-        .modal-body { font-size: 13px; margin-bottom: 24px; line-height: 1.6; color: var(--text-light); text-align: left; }
+        @keyframes modalPop {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .modal-title { color: var(--danger); font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+        .modal-body { font-size: 13.5px; margin-bottom: 24px; line-height: 1.6; color: var(--text-light); text-align: left; }
         .modal-btn {
             background: var(--danger); color: white; border: none;
-            padding: 10px 20px; border-radius: 8px; font-family: 'Inter', sans-serif;
+            padding: 12px 20px; border-radius: 10px; font-family: 'Inter', sans-serif;
             font-weight: 600; font-size: 14px; cursor: pointer; width: 100%;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
         }
+        .modal-btn:hover { background: #dc2626; }
     </style>
 </head>
 <body>
@@ -229,47 +262,47 @@
         <form id="pipeForm">
             <div class="form-group">
                 <label>Nama Teknisi</label>
-                <input type="text" id="teknisi" required placeholder="Contoh: Budi">
+                <input type="text" id="teknisi" required>
             </div>
             <div class="form-group">
                 <label>Merk Pipa</label>
-                <input type="text" id="merkPipa" required placeholder="Contoh: Tateho / Hoda">
+                <input type="text" id="merkPipa" required>
             </div>
             <div class="form-group">
                 <label>Ukuran Pipa</label>
-                <input type="text" id="ukuranPipa" required placeholder="Contoh: 1/4 - 3/8">
+                <input type="text" id="ukuranPipa" required>
             </div>
             <div class="form-group">
                 <label>Stok Awal Pipa di Gudang (Meter)</label>
-                <input type="number" id="stokAwal" required placeholder="Contoh: 30 atau 10" min="1">
+                <input type="number" id="stokAwal" required min="1">
             </div>
             <div class="form-group">
                 <label>Nama Customer / Lokasi</label>
-                <input type="text" id="customer" required placeholder="Contoh: Pak Joko">
+                <input type="text" id="customer" required>
             </div>
             <div class="form-group">
                 <label>Pipa yang DIBAWA untuk Job Ini (Meter)</label>
-                <input type="number" id="pipaBawa" required placeholder="Contoh: 10" min="1">
+                <input type="number" id="pipaBawa" required min="1">
             </div>
             <div class="form-group">
                 <label>Pipa yang TERPAKAI Aktual (Meter)</label>
-                <input type="number" id="pipaPakai" required placeholder="Contoh: 8" min="1">
+                <input type="number" id="pipaPakai" required min="1">
             </div>
             <div class="form-group">
                 <label>Sisa Pipa yang DIBAWA PULANG (Otomatis)</label>
-                <input type="text" id="sisaPulang" class="readonly-input" readonly placeholder="Terhitung otomatis">
+                <input type="text" id="sisaPulang" class="readonly-input" readonly>
             </div>
             
             <button type="submit" class="btn-action" id="btnSubmit">Kirim Laporan</button>
-            <div id="loadingTeknisi" style="text-align:center; font-size:13px; color:#d97706; margin-top:10px; display:none;">Mengirim data ke Google Sheets...</div>
+            <div id="loadingTeknisi" style="text-align:center; font-size:13.5px; color:#d97706; margin-top:12px; display:none; font-weight:500;">Mengirim data ke Google Sheets...</div>
         </form>
     </div>
 
     <!-- HALAMAN 2: ADMIN (MENGAMBIL DATA LANGSUNG DARI SHEETS) -->
     <div id="pageAdmin" class="page-section">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
             <h3 style="margin: 0; font-size: 16px; color: var(--primary);">Live Rekap dari Google Sheets</h3>
-            <button onclick="loadAdminTable()" style="background:var(--primary-light); color:white; border:none; padding:7px 12px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">🔄 Refresh Data</button>
+            <button onclick="loadAdminTable()" style="background:var(--primary-light); color:white; border:none; padding:8px 14px; border-radius:8px; font-size:12.5px; font-weight:600; cursor:pointer; box-shadow: 0 2px 5px rgba(59,130,246,0.2);">🔄 Refresh Data</button>
         </div>
         <div class="table-responsive">
             <table>
