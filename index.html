@@ -18,24 +18,17 @@
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // ====================================================
-        // KONFIGURASI SERVER DATABASE (MASUKKAN API KEY ANDA)
+        // KONFIGURASI SERVER DATABASE
         // ====================================================
         const firebaseConfig = {
-             apiKey: "AIzaSyBMokA92YiB87vwuqBREwNhHkkU_bXo8cI",
-
-  authDomain: "ufokebonsariapps.firebaseapp.com",
-
-  databaseURL: "https://ufokebonsariapps-default-rtdb.asia-southeast1.firebasedatabase.app",
-
-  projectId: "ufokebonsariapps",
-
-  storageBucket: "ufokebonsariapps.firebasestorage.app",
-
-  messagingSenderId: "663266923207",
-
-  appId: "1:663266923207:web:8cf3f19cee0910423724e2"
-
-};
+            apiKey: "AIzaSyBMokA92YiB87vwuqBREwNhHkkU_bXo8cI",
+            authDomain: "ufokebonsariapps.firebaseapp.com",
+            databaseURL: "https://ufokebonsariapps-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "ufokebonsariapps",
+            storageBucket: "ufokebonsariapps.firebasestorage.app",
+            messagingSenderId: "663266923207",
+            appId: "1:663266923207:web:8cf3f19cee0910423724e2"
+        };
 
         // Inisialisasi Server Database
         const app = initializeApp(firebaseConfig);
@@ -59,7 +52,6 @@
 
         // 1. LISTEN REALTIME DATA MASTER (Teknisi & Merk/Ukuran Pipa)
         function initMasterData() {
-            // Stream Master Teknisi
             onSnapshot(collection(db, "masterTeknisi"), (snapshot) => {
                 selectTeknisi.innerHTML = '<option value="" disabled selected hidden></option>';
                 listMasterTeknisi.innerHTML = '';
@@ -72,13 +64,11 @@
                     const data = docSnap.data();
                     const id = docSnap.id;
                     
-                    // Populate Select Options Halaman Teknisi
                     let opt = document.createElement('option');
                     opt.value = data.name;
                     opt.textContent = data.name;
                     selectTeknisi.appendChild(opt);
 
-                    // Populate Admin Management List
                     let li = document.createElement('li');
                     li.className = 'master-item';
                     li.innerHTML = `
@@ -89,7 +79,6 @@
                 });
             });
 
-            // Stream Master Pipa (Merk & Ukuran)
             onSnapshot(collection(db, "masterPipa"), (snapshot) => {
                 selectPipa.innerHTML = '<option value="" disabled selected hidden></option>';
                 listMasterPipa.innerHTML = '';
@@ -102,13 +91,11 @@
                     const data = docSnap.data();
                     const id = docSnap.id;
                     
-                    // Populate Select Options Halaman Teknisi
                     let opt = document.createElement('option');
                     opt.value = data.name;
                     opt.textContent = data.name;
                     selectPipa.appendChild(opt);
 
-                    // Populate Admin Management List
                     let li = document.createElement('li');
                     li.className = 'master-item';
                     li.innerHTML = `
@@ -198,7 +185,7 @@
             let sisa = bawa - pakai;
 
             if (bawa > awal) {
-                modalTitle.innerText = "⛔ STOK TIDAK CUKUP";
+                modalTitle.innerText = "STOK TIDAK CUKUP";
                 modalText.innerHTML = `Pipa yang dibawa (<b>${bawa}m</b>) melebihi stok awal gudang (<b>${awal}m</b>).`;
                 openModal();
                 return;
@@ -209,9 +196,8 @@
                 return;
             }
 
-            // VALIDASI UTAMA: Cek sisa 1 atau 2 meter
             if (sisa > 0 && sisa < 3) {
-                modalTitle.innerText = "⛔ PELANGGARAN SISA 1-2 METER";
+                modalTitle.innerText = "PELANGGARAN SISA 1-2 METER";
                 modalText.innerHTML = `Anda membawa <b>${bawa}m</b> dan terpakai <b>${pakai}m</b>.<br><br>` +
                                       `Sisa yang dibawa pulang adalah <b>${sisa} meter</b>.<br><br>` +
                                       `<span style="color:var(--danger); font-weight:600;">Sisa 1-2 meter dilarang keras karena menjadi barang mati!</span><br><br>` +
@@ -287,7 +273,6 @@
             }
         };
 
-        // Inisialisasi awal saat aplikasi terbuka
         initMasterData();
     </script>
     
@@ -306,11 +291,11 @@
 
         * { 
             box-sizing: border-box; 
+            font-family: 'Inter', sans-serif !important;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
         }
 
         body {
-            font-family: 'Inter', sans-serif;
             background: var(--bg);
             color: var(--text);
             margin: 0;
@@ -352,6 +337,10 @@
 
         .nav-tab {
             flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             padding: 12px;
             text-align: center;
             font-weight: 600;
@@ -403,7 +392,6 @@
             padding: 13px 16px;
             border: 1.5px solid var(--border);
             border-radius: 10px;
-            font-family: 'Inter', sans-serif;
             font-size: 14.5px;
             color: var(--text);
             background: #fff;
@@ -432,7 +420,6 @@
             padding: 14px;
             width: 100%;
             border-radius: 10px;
-            font-family: 'Inter', sans-serif;
             font-size: 15px;
             font-weight: 600;
             cursor: pointer;
@@ -461,6 +448,9 @@
         }
 
         .master-card h4 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
             margin-top: 0;
             margin-bottom: 14px;
             font-size: 15px;
@@ -593,8 +583,17 @@
         .modal-body { font-size: 13.5px; margin-bottom: 24px; line-height: 1.6; color: var(--text-light); text-align: left; }
         .modal-btn {
             background: var(--danger); color: white; border: none;
-            padding: 12px 20px; border-radius: 10px; font-family: 'Inter', sans-serif;
+            padding: 12px 20px; border-radius: 10px;
             font-weight: 600; font-size: 14px; cursor: pointer; width: 100%;
+        }
+
+        /* Style untuk SVG Icon */
+        .icon-svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+            display: inline-block;
+            vertical-align: middle;
         }
     </style>
 </head>
@@ -605,8 +604,14 @@
     
     <!-- Navigasi Tab -->
     <div class="nav-tabs">
-        <button class="nav-tab active" onclick="switchPage('teknisi')">📋 Form Input Teknisi</button>
-        <button class="nav-tab" onclick="switchPage('admin')">📊 Dashboard Admin & Master Data</button>
+        <button class="nav-tab active" onclick="switchPage('teknisi')">
+            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+            Form Input Teknisi
+        </button>
+        <button class="nav-tab" onclick="switchPage('admin')">
+            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+            Dashboard Admin & Master
+        </button>
     </div>
 
     <!-- HALAMAN 1: FORM TEKNISI -->
@@ -677,9 +682,12 @@
             
             <!-- Master Teknisi -->
             <div class="master-card">
-                <h4>👨‍🔧 Master Nama Teknisi</h4>
+                <h4>
+                    <svg class="icon-svg" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    Master Nama Teknisi
+                </h4>
                 <div class="input-group-inline">
-                    <input type="text" id="inputNamaTeknisi">
+                    <input type="text" id="inputNamaTeknisi" placeholder="Nama Teknisi Baru">
                     <button type="button" class="btn-add" onclick="tambahMasterTeknisi()">+ Tambah</button>
                 </div>
                 <ul class="master-list" id="listMasterTeknisi">
@@ -689,9 +697,12 @@
 
             <!-- Master Pipa -->
             <div class="master-card">
-                <h4>❄️ Master Merk & Ukuran Pipa</h4>
+                <h4>
+                    <svg class="icon-svg" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+                    Master Merk & Ukuran Pipa
+                </h4>
                 <div class="input-group-inline">
-                    <input type="text" id="inputMerkPipa">
+                    <input type="text" id="inputMerkPipa" placeholder="Contoh: GEVER 1/4 x 3/8">
                     <button type="button" class="btn-add" onclick="tambahMasterPipa()">+ Tambah</button>
                 </div>
                 <ul class="master-list" id="listMasterPipa">
@@ -734,7 +745,7 @@
 <!-- Modal Peringatan -->
 <div id="alertModal" class="modal">
     <div class="modal-content">
-        <div class="modal-title" id="modalTitle">⛔ PELANGGARAN SISA 1-2 METER</div>
+        <div class="modal-title" id="modalTitle">PELANGGARAN SISA 1-2 METER</div>
         <div class="modal-body" id="modalText">Pesan peringatan...</div>
         <button class="modal-btn" onclick="closeModal()">Perbaiki Input</button>
     </div>
@@ -748,10 +759,10 @@
 
         if(page === 'teknisi') {
             document.getElementById('pageTeknisi').classList.add('active');
-            event.target.classList.add('active');
+            event.target.closest('.nav-tab').classList.add('active');
         } else {
             document.getElementById('pageAdmin').classList.add('active');
-            event.target.classList.add('active');
+            event.target.closest('.nav-tab').classList.add('active');
             loadAdminTable(); 
         }
     }
