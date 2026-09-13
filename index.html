@@ -3,43 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kontrol Pipa AC (Firebase + Admin Web)</title>
+    <title>Sistem Kontrol & Data Pipa AC</title>
     <!-- Import Google Font: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Import Firebase SDK (Versi Modular) -->
+    <!-- Import Firebase SDK (Engine Server Database) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { 
+            getFirestore, collection, addDoc, getDocs, deleteDoc, doc, 
+            query, orderBy, serverTimestamp, onSnapshot 
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // ==========================================
-        // MASUKKAN KONFIGURASI FIREBASE ANDA DI SINI
-        // ==========================================
+        // ====================================================
+        // KONFIGURASI SERVER DATABASE (MASUKKAN API KEY ANDA)
+        // ====================================================
         const firebaseConfig = {
-            apiKey: "AIzaSyBMokA92YiB87vwuqBREwNhHkkU_bXo8cI",
+            apiKey: "GANTI_DENGAN_API_KEY_ANDA",
+            authDomain: "GANTI_DENGAN_AUTH_DOMAIN_ANDA",
+            projectId: "GANTI_DENGAN_PROJECT_ID_ANDA",
+            storageBucket: "GANTI_DENGAN_STORAGE_BUCKET_ANDA",
+            messagingSenderId: "GANTI_DENGAN_MESSAGING_SENDER_ID_ANDA",
+            appId: "GANTI_DENGAN_APP_ID_ANDA"
+        };
 
-  authDomain: "ufokebonsariapps.firebaseapp.com",
-
-  databaseURL: "https://ufokebonsariapps-default-rtdb.asia-southeast1.firebasedatabase.app",
-
-  projectId: "ufokebonsariapps",
-
-  storageBucket: "ufokebonsariapps.firebasestorage.app",
-
-  messagingSenderId: "663266923207",
-
-  appId: "1:663266923207:web:8cf3f19cee0910423724e2"
-
-};
-
-
-        // Inisialisasi Firebase
+        // Inisialisasi Server Database
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Fungsi Hitung Sisa Pipa Otomatis
+        // Element HTML Reference
         const stokAwal = document.getElementById('stokAwal');
         const pipaBawa = document.getElementById('pipaBawa');
         const pipaPakai = document.getElementById('pipaPakai');
@@ -49,7 +43,124 @@
         const modalText = document.getElementById('modalText');
         const btnSubmit = document.getElementById('btnSubmit');
         const loadingTeknisi = document.getElementById('loadingTeknisi');
+        
+        const selectTeknisi = document.getElementById('teknisi');
+        const selectPipa = document.getElementById('pipaCombined');
+        const listMasterTeknisi = document.getElementById('listMasterTeknisi');
+        const listMasterPipa = document.getElementById('listMasterPipa');
 
+        // 1. LISTEN REALTIME DATA MASTER (Teknisi & Merk/Ukuran Pipa)
+        function initMasterData() {
+            // Stream Master Teknisi
+            onSnapshot(collection(db, "masterTeknisi"), (snapshot) => {
+                selectTeknisi.innerHTML = '<option value="" disabled selected hidden></option>';
+                listMasterTeknisi.innerHTML = '';
+                
+                if(snapshot.empty) {
+                    listMasterTeknisi.innerHTML = '<li class="empty-list">Belum ada data teknisi</li>';
+                }
+
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const id = docSnap.id;
+                    
+                    // Populate Select Options Halaman Teknisi
+                    let opt = document.createElement('option');
+                    opt.value = data.name;
+                    opt.textContent = data.name;
+                    selectTeknisi.appendChild(opt);
+
+                    // Populate Admin Management List
+                    let li = document.createElement('li');
+                    li.className = 'master-item';
+                    li.innerHTML = `
+                        <span>${data.name}</span>
+                        <button class="btn-delete-sm" onclick="hapusMasterTeknisi('${id}')">Hapus</button>
+                    `;
+                    listMasterTeknisi.appendChild(li);
+                });
+            });
+
+            // Stream Master Pipa (Merk & Ukuran)
+            onSnapshot(collection(db, "masterPipa"), (snapshot) => {
+                selectPipa.innerHTML = '<option value="" disabled selected hidden></option>';
+                listMasterPipa.innerHTML = '';
+
+                if(snapshot.empty) {
+                    listMasterPipa.innerHTML = '<li class="empty-list">Belum ada data merk/ukuran pipa</li>';
+                }
+
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const id = docSnap.id;
+                    
+                    // Populate Select Options Halaman Teknisi
+                    let opt = document.createElement('option');
+                    opt.value = data.name;
+                    opt.textContent = data.name;
+                    selectPipa.appendChild(opt);
+
+                    // Populate Admin Management List
+                    let li = document.createElement('li');
+                    li.className = 'master-item';
+                    li.innerHTML = `
+                        <span>${data.name}</span>
+                        <button class="btn-delete-sm" onclick="hapusMasterPipa('${id}')">Hapus</button>
+                    `;
+                    listMasterPipa.appendChild(li);
+                });
+            });
+        }
+
+        // 2. TAMBAH & HAPUS MASTER TEKNISI
+        window.tambahMasterTeknisi = async function() {
+            const input = document.getElementById('inputNamaTeknisi');
+            const nama = input.value.trim();
+            if(!nama) return alert("Silakan masukkan nama teknisi!");
+
+            try {
+                await addDoc(collection(db, "masterTeknisi"), { name: nama });
+                input.value = '';
+            } catch (err) {
+                alert("Gagal menambahkan teknisi: " + err.message);
+            }
+        };
+
+        window.hapusMasterTeknisi = async function(id) {
+            if(confirm("Apakah Anda yakin ingin menghapus nama teknisi ini?")) {
+                try {
+                    await deleteDoc(doc(db, "masterTeknisi", id));
+                } catch (err) {
+                    alert("Gagal menghapus: " + err.message);
+                }
+            }
+        };
+
+        // 3. TAMBAH & HAPUS MASTER PIPA
+        window.tambahMasterPipa = async function() {
+            const input = document.getElementById('inputMerkPipa');
+            const merkUkuran = input.value.trim();
+            if(!merkUkuran) return alert("Silakan masukkan merk & ukuran pipa!");
+
+            try {
+                await addDoc(collection(db, "masterPipa"), { name: merkUkuran });
+                input.value = '';
+            } catch (err) {
+                alert("Gagal menambahkan pipa: " + err.message);
+            }
+        };
+
+        window.hapusMasterPipa = async function(id) {
+            if(confirm("Apakah Anda yakin ingin menghapus tipe pipa ini?")) {
+                try {
+                    await deleteDoc(doc(db, "masterPipa", id));
+                } catch (err) {
+                    alert("Gagal menghapus: " + err.message);
+                }
+            }
+        };
+
+        // 4. HITUNG SISA PIPA AUTOMATIS
         function hitungSisa() {
             let bawa = parseFloat(pipaBawa.value) || 0;
             let pakai = parseFloat(pipaPakai.value) || 0;
@@ -69,7 +180,7 @@
         pipaBawa.addEventListener('input', hitungSisa);
         pipaPakai.addEventListener('input', hitungSisa);
 
-        // Kirim Data dari Form Teknisi ke Firebase Firestore
+        // 5. SUBMIT FORM LAPORAN TEKNISI
         document.getElementById('pipeForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -102,11 +213,11 @@
             }
 
             let payload = {
-                teknisi: document.getElementById('teknisi').value,
-                merkPipa: document.getElementById('merkPipa').value,
-                ukuranPipa: document.getElementById('ukuranPipa').value,
+                spk: document.getElementById('spk').value.trim(),
+                teknisi: selectTeknisi.value,
+                pipaCombined: selectPipa.value,
                 stokAwal: awal,
-                customer: document.getElementById('customer').value,
+                customer: document.getElementById('customer').value.trim(),
                 bawa: bawa,
                 pakai: pakai,
                 sisa: sisa + " Meter",
@@ -117,25 +228,24 @@
 
             btnSubmit.disabled = true;
             loadingTeknisi.style.display = "block";
-            loadingTeknisi.innerText = "Menyimpan ke Firebase...";
 
             try {
                 await addDoc(collection(db, "laporanPipa"), payload);
-                alert("Laporan berhasil dikirim dan tersimpan otomatis di Firebase!");
+                alert("Laporan SPK " + payload.spk + " berhasil terverifikasi dan tersimpan di Database Server!");
                 document.getElementById('pipeForm').reset();
                 sisaPulang.value = "";
             } catch (error) {
-                alert("Gagal menyimpan data: " + error.message);
+                alert("Gagal mengirim laporan: " + error.message);
             } finally {
                 btnSubmit.disabled = false;
                 loadingTeknisi.style.display = "none";
             }
         });
 
-        // Ambil dan Tampilkan Data dari Firebase untuk Admin
+        // 6. LOAD TABEL REKAPITULASI UNTUK ADMIN
         window.loadAdminTable = async function() {
             let tbody = document.getElementById('adminTableBody');
-            tbody.innerHTML = `<tr><td colspan="9" class="loading-text">Mengambil data terbaru dari Firebase...</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="10" class="loading-text">Memuat data rekapitulasi server...</td></tr>`;
 
             try {
                 const q = query(collection(db, "laporanPipa"), orderBy("timestamp", "desc"));
@@ -143,17 +253,18 @@
                 
                 tbody.innerHTML = "";
                 if (querySnapshot.empty) {
-                    tbody.innerHTML = `<tr><td colspan="9" class="loading-text">Belum ada data laporan di Firebase.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="10" class="loading-text">Belum ada data laporan yang tersimpan di server.</td></tr>`;
                     return;
                 }
 
-                querySnapshot.forEach((doc) => {
-                    let item = doc.data();
+                querySnapshot.forEach((docSnap) => {
+                    let item = docSnap.data();
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>${item.waktu || '-'}</td>
+                        <td><span class="badge-spk">${item.spk || '-'}</span></td>
                         <td><b>${item.teknisi}</b></td>
-                        <td>${item.merkPipa} (${item.ukuranPipa})</td>
+                        <td>${item.pipaCombined}</td>
                         <td>${item.customer}</td>
                         <td>${item.stokAwal}</td>
                         <td>${item.bawa}</td>
@@ -164,18 +275,21 @@
                     tbody.appendChild(tr);
                 });
             } catch (err) {
-                tbody.innerHTML = `<tr><td colspan="9" class="loading-text" style="color:var(--danger);">Gagal memuat data dari Firebase. Pastikan aturan Firestore Database (Rules) sudah diset Public/Test Mode.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" class="loading-text" style="color:var(--danger);">Gagal mengambil data dari server. Periksa konfigurasi Database.</td></tr>`;
             }
-        }
+        };
+
+        // Inisialisasi awal saat aplikasi terbuka
+        initMasterData();
     </script>
     
     <style>
         :root {
             --primary: #0f172a;
-            --primary-light: #3b82f6;
+            --primary-light: #2563eb;
             --success: #10b981;
             --danger: #ef4444;
-            --bg: #f1f5f9;
+            --bg: #f8fafc;
             --card-bg: #ffffff;
             --border: #cbd5e1;
             --text: #1e293b;
@@ -184,7 +298,7 @@
 
         * { 
             box-sizing: border-box; 
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
         }
 
         body {
@@ -201,12 +315,12 @@
 
         .container {
             width: 100%;
-            max-width: 800px;
+            max-width: 900px;
             background: var(--card-bg);
             padding: 35px 40px;
             border-radius: 20px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(226, 232, 240, 0.9);
         }
 
         h2 {
@@ -248,7 +362,7 @@
         }
 
         .page-section { display: none; }
-        .page-section.active { display: block; animation: fadeIn 0.4s ease-in-out; }
+        .page-section.active { display: block; animation: fadeIn 0.35s ease-in-out; }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(6px); }
@@ -264,7 +378,6 @@
             border-radius: 10px;
             line-height: 1.6;
             color: #166534;
-            box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
         }
 
         .form-group { margin-bottom: 20px; }
@@ -277,7 +390,7 @@
             color: var(--primary);
         }
 
-        input {
+        input, select {
             width: 100%;
             padding: 13px 16px;
             border: 1.5px solid var(--border);
@@ -289,11 +402,11 @@
             outline: none;
         }
 
-        input:hover { border-color: #94a3b8; }
-        input:focus {
+        input:hover, select:hover { border-color: #94a3b8; }
+        input:focus, select:focus {
             border-color: var(--primary-light);
             background: #fff;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
         }
 
         .readonly-input {
@@ -322,8 +435,91 @@
         button.btn-action:hover { 
             background: #059669; 
             transform: translateY(-1px);
-            box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3);
         }
+
+        /* Desain Manajemen Data Master Admin */
+        .master-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .master-card {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .master-card h4 {
+            margin-top: 0;
+            margin-bottom: 14px;
+            font-size: 15px;
+            color: var(--primary);
+        }
+
+        .input-group-inline {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .input-group-inline input {
+            flex: 1;
+            padding: 10px 12px;
+            font-size: 13.5px;
+        }
+
+        .btn-add {
+            background: var(--primary-light);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .btn-add:hover { background: #1d4ed8; }
+
+        .master-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 180px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+        }
+
+        .master-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 13.5px;
+        }
+
+        .master-item:last-child { border-bottom: none; }
+
+        .btn-delete-sm {
+            background: #fee2e2;
+            color: var(--danger);
+            border: none;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-delete-sm:hover { background: #fca5a5; }
+        .empty-list { padding: 15px; text-align: center; color: var(--text-light); font-size: 12.5px; }
 
         /* Tabel Rekap Admin */
         .table-responsive {
@@ -355,6 +551,15 @@
 
         tr:nth-child(even) { background: #f8fafc; }
         tr:hover { background: #f1f5f9; }
+
+        .badge-spk {
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 12px;
+        }
 
         .badge-ok { color: var(--success); font-weight: 600; }
         .loading-text { text-align: center; padding: 30px; color: var(--text-light); font-size: 14px; }
@@ -388,76 +593,121 @@
 <body>
 
 <div class="container">
-    <h2>Sistem Kontrol Pipa AC (Firebase)</h2>
+    <h2>Sistem Kontrol & Rekapitulasi Pipa AC</h2>
     
-    <!-- Navigasi Tab / Halaman -->
+    <!-- Navigasi Tab -->
     <div class="nav-tabs">
-        <button class="nav-tab active" onclick="switchPage('teknisi')">📱 Halaman Teknisi</button>
-        <button class="nav-tab" onclick="switchPage('admin')">📊 Halaman Admin (Live Firebase)</button>
+        <button class="nav-tab active" onclick="switchPage('teknisi')">📋 Form Input Teknisi</button>
+        <button class="nav-tab" onclick="switchPage('admin')">📊 Dashboard Admin & Master Data</button>
     </div>
 
-    <!-- HALAMAN 1: TEKNISI -->
+    <!-- HALAMAN 1: FORM TEKNISI -->
     <div id="pageTeknisi" class="page-section active">
         <div class="rule-card">
-            <strong>Aturan Gudang:</strong><br>
-            • Masukkan stok awal, merk, & ukuran pipa.<br>
+            <strong>Aturan Gudang & Operasional:</strong><br>
+            • Masukkan Nomor SPK, Teknisi, & Spesifikasi Pipa.<br>
             • Masukkan pipa bawa & terpakai.<br>
             • Sisa pulang <b>TIDAK BOLEH 1 atau 2 meter</b>!
         </div>
 
         <form id="pipeForm">
             <div class="form-group">
+                <label>Nomor SPK (Surat Perintah Kerja)</label>
+                <input type="text" id="spk" required>
+            </div>
+            
+            <div class="form-group">
                 <label>Nama Teknisi</label>
-                <input type="text" id="teknisi" required>
+                <select id="teknisi" required>
+                    <option value="" disabled selected hidden></option>
+                </select>
             </div>
+
             <div class="form-group">
-                <label>Merk Pipa</label>
-                <input type="text" id="merkPipa" required>
+                <label>Merk & Ukuran Pipa</label>
+                <select id="pipaCombined" required>
+                    <option value="" disabled selected hidden></option>
+                </select>
             </div>
-            <div class="form-group">
-                <label>Ukuran Pipa</label>
-                <input type="text" id="ukuranPipa" required>
-            </div>
+
             <div class="form-group">
                 <label>Stok Awal Pipa di Gudang (Meter)</label>
                 <input type="number" id="stokAwal" required min="1">
             </div>
+
             <div class="form-group">
-                <label>Nama Customer / Lokasi</label>
+                <label>Nama Customer / Lokasi Pemasangan</label>
                 <input type="text" id="customer" required>
             </div>
+
             <div class="form-group">
                 <label>Pipa yang DIBAWA untuk Job Ini (Meter)</label>
                 <input type="number" id="pipaBawa" required min="1">
             </div>
+
             <div class="form-group">
                 <label>Pipa yang TERPAKAI Aktual (Meter)</label>
                 <input type="number" id="pipaPakai" required min="1">
             </div>
+
             <div class="form-group">
-                <label>Sisa Pipa yang DIBAWA PULANG (Otomatis)</label>
+                <label>Sisa Pipa yang DIBAWA PULANG (Kalkulasi Otomatis)</label>
                 <input type="text" id="sisaPulang" class="readonly-input" readonly>
             </div>
             
-            <button type="submit" class="btn-action" id="btnSubmit">Kirim Laporan</button>
-            <div id="loadingTeknisi" style="text-align:center; font-size:13.5px; color:#d97706; margin-top:12px; display:none; font-weight:500;">Menyimpan data...</div>
+            <button type="submit" class="btn-action" id="btnSubmit">Kirim Laporan SPK</button>
+            <div id="loadingTeknisi" style="text-align:center; font-size:13.5px; color:#d97706; margin-top:12px; display:none; font-weight:500;">Proses verifikasi & menyimpan data server...</div>
         </form>
     </div>
 
-    <!-- HALAMAN 2: ADMIN -->
+    <!-- HALAMAN 2: DASHBOARD ADMIN & MANAGEMENT -->
     <div id="pageAdmin" class="page-section">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <h3 style="margin: 0; font-size: 16px; color: var(--primary);">Live Rekap dari Firebase</h3>
-            <button onclick="loadAdminTable()" style="background:var(--primary-light); color:white; border:none; padding:8px 14px; border-radius:8px; font-size:12.5px; font-weight:600; cursor:pointer;">🔄 Refresh Data</button>
+        
+        <!-- KELOLA DATA MASTER (TEKNISI & PIPA) -->
+        <h3 style="margin-top:0; font-size: 16px; color: var(--primary); margin-bottom:15px;">Kelola Data Master Systems</h3>
+        <div class="master-grid">
+            
+            <!-- Master Teknisi -->
+            <div class="master-card">
+                <h4>👨‍🔧 Master Nama Teknisi</h4>
+                <div class="input-group-inline">
+                    <input type="text" id="inputNamaTeknisi">
+                    <button type="button" class="btn-add" onclick="tambahMasterTeknisi()">+ Tambah</button>
+                </div>
+                <ul class="master-list" id="listMasterTeknisi">
+                    <li class="empty-list">Memuat master teknisi...</li>
+                </ul>
+            </div>
+
+            <!-- Master Pipa -->
+            <div class="master-card">
+                <h4>❄️ Master Merk & Ukuran Pipa</h4>
+                <div class="input-group-inline">
+                    <input type="text" id="inputMerkPipa">
+                    <button type="button" class="btn-add" onclick="tambahMasterPipa()">+ Tambah</button>
+                </div>
+                <ul class="master-list" id="listMasterPipa">
+                    <li class="empty-list">Memuat master pipa...</li>
+                </ul>
+            </div>
+
         </div>
+
+        <!-- REKAPITULASI LAPORAN SERVER -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; margin-top:20px;">
+            <h3 style="margin: 0; font-size: 16px; color: var(--primary);">Data Rekapitulasi SPK Real-time</h3>
+            <button onclick="loadAdminTable()" style="background:var(--primary-light); color:white; border:none; padding:8px 14px; border-radius:8px; font-size:12.5px; font-weight:600; cursor:pointer;">🔄 Refresh Tabel</button>
+        </div>
+        
         <div class="table-responsive">
             <table>
                 <thead>
                     <tr>
-                        <th>Waktu</th>
+                        <th>Waktu Input</th>
+                        <th>No. SPK</th>
                         <th>Teknisi</th>
                         <th>Merk & Ukuran</th>
-                        <th>Customer</th>
+                        <th>Customer / Lokasi</th>
                         <th>Stok Awal</th>
                         <th>Dibawa</th>
                         <th>Terpakai</th>
@@ -466,7 +716,7 @@
                     </tr>
                 </thead>
                 <tbody id="adminTableBody">
-                    <tr><td colspan="9" class="loading-text">Memuat data dari Firebase...</td></tr>
+                    <tr><td colspan="10" class="loading-text">Memuat data rekapitulasi server...</td></tr>
                 </tbody>
             </table>
         </div>
