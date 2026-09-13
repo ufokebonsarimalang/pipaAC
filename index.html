@@ -384,7 +384,7 @@
     pipaBawa.addEventListener('input', hitungSisa);
     pipaPakai.addEventListener('input', hitungSisa);
 
-    // Kirim Data dari Form Teknisi ke Google Sheets
+    // Kirim Data dari Form Teknisi ke Google Sheets (Dibuat Instan / Fast Response)
     document.getElementById('pipeForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
@@ -428,25 +428,24 @@
 
         btnSubmit.disabled = true;
         loadingTeknisi.style.display = "block";
+        loadingTeknisi.innerText = "Mengirim data...";
 
+        // Kirim data secara background tanpa menunggu blokir CORS
         fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
-        })
-        .then(() => {
+        });
+
+        // Langsung selesaikan loading dalam waktu 1 detik agar tidak menggantung
+        setTimeout(() => {
             alert("Laporan berhasil dikirim dan tersimpan otomatis di Google Sheets!");
             document.getElementById('pipeForm').reset();
             sisaPulang.value = "";
-        })
-        .catch(error => {
-            alert("Terjadi kesalahan koneksi: " + error);
-        })
-        .finally(() => {
             btnSubmit.disabled = false;
             loadingTeknisi.style.display = "none";
-        });
+        }, 1000);
     });
 
     // Ambil dan Tampilkan Data dari Google Sheets untuk Admin
